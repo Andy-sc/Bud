@@ -5,9 +5,9 @@ import { categoryColorVar } from "@/lib/categoryColors";
 import type { CategoryComputed } from "@/lib/budget";
 
 const TYPE_LABEL: Record<string, string> = {
-  fixed: "Fijo",
+  fixed: "Fixed",
   variable: "Variable",
-  debt: "Deuda",
+  debt: "Debt",
 };
 
 export default function CategoryCard({
@@ -44,7 +44,7 @@ export default function CategoryCard({
             {money(category.actual)}
           </span>
           <span className="tabular-nums text-[var(--text-muted)]">
-            de {money(category.planned)}
+            of {money(category.planned)}
           </span>
         </div>
         <ProgressBar pctUsed={category.pctUsed} />

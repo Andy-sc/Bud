@@ -5,6 +5,9 @@ App de presupuesto mensual construida sobre la estructura de tu Excel
 seguimiento de deudas — pero en la nube, accesible desde cualquier
 dispositivo, con gráficos y sin tener que tocar fórmulas nunca más.
 
+**La app (todo lo que ves en pantalla) está en inglés.** Este README está en
+español solo porque así hablamos — es la guía para ti, no parte de la app.
+
 ## Qué incluye
 
 - **Resumen anual** (Income, Total Expenses, Balance) arriba de todo.
@@ -15,7 +18,9 @@ dispositivo, con gráficos y sin tener que tocar fórmulas nunca más.
   subcategoría, cuenta, nota.
 - **Registro de ingresos**: fecha, monto, fuente, cuenta.
 - **Deudas**: saldo actual por deuda, abonos que reducen el saldo
-  automáticamente.
+  automáticamente, y una fecha estimada de cuándo terminas de pagar según tu
+  cuota mensual (con interés incluido) — si subes el pago, la fecha se
+  actualiza sola.
 - **Gráficos**: Planned vs Actual por categoría, y gasto por cuenta (Chase
   Checking, Chase Savings, Chase Credit, Vanguard, Venmo).
 - **Administrar categorías**: agrega, edita o elimina categorías,
@@ -65,7 +70,9 @@ npm run dev
 ```
 
 Abre `http://localhost:3000`, entra con tu correo, revisa el enlace mágico
-que te llega, y haz clic en **"Cargar plantilla inicial"** la primera vez.
+que te llega, y haz clic en **"Load starter template"** la primera vez. La
+app está en inglés — estas instrucciones están en español solo para
+guiarte a ti.
 
 ## Paso 3 — Desplegar en Vercel (hosting)
 
@@ -95,28 +102,38 @@ correo, y ya puedes usar la app desde cualquier lugar.
 ## Paso 4 — Cargar tu presupuesto
 
 1. La primera vez que entres, verás la pantalla de bienvenida — haz clic en
-   **"Cargar plantilla inicial"**. Esto crea las categorías, subcategorías,
+   **"Load starter template"**. Esto crea las categorías, subcategorías,
    cuentas y la deuda "Hermana" con los montos que ya definiste (rent
-   $1,130, car payment $700, car insurance $137.94, etc.).
-2. *(Opcional, solo para tu cuenta, no la de tu novio)* — si quieres que la
+   $1,130, car insurance $137.94, etc.).
+2. Tu **préstamo del carro (car loan)** no se precarga — necesita el saldo
+   real y la tasa de interés, que solo tú tienes. Ve a **Debts** → **"+ New
+   debt"** y captúralo con tu saldo actual, tasa anual, y tu pago mensual
+   ($700 o el que uses); la app te muestra el saldo restante y una fecha
+   estimada de cuándo terminas de pagarlo, que se actualiza si subes o
+   bajas la cuota.
+3. *(Opcional, solo para tu cuenta, no la de tu novio)* — si quieres que la
    app arranque reflejando tus saldos reales y tu primer pago ya recibido,
    ve a Supabase → **SQL Editor**, abre
    [`supabase/seed_my_real_data.sql`](./supabase/seed_my_real_data.sql),
    cópialo, pégalo y dale **Run**. Esto pone tu Chase Checking en $789.04,
    tu Chase Savings en $625, y registra tu pago del 4 de septiembre de
    $1,139.92.
-3. Ve a **Categorías** para ajustar cualquier monto o agregar lo que falte
+4. Ve a **Categories** para ajustar cualquier monto o agregar lo que falte
    (por ejemplo, cuando confirmes el monto real de electricidad/wifi/agua).
+   Todo lo que agregues o edites aquí — una categoría nueva, una
+   subcategoría nueva, un monto — queda guardado para siempre: se aplica
+   automáticamente a este mes y a todos los meses futuros, no hay que
+   repetirlo cada mes.
 
 ## Agregar el perfil de tu novio
 
 Como cada persona tiene su propio login (magic link con su correo), no
 necesitas crear nada especial: solo pídele que entre a la misma URL de
 Vercel con **su propio correo**. Supabase creará su cuenta automáticamente,
-verá la misma pantalla de bienvenida, y al hacer clic en "Cargar plantilla
-inicial" obtendrá exactamente la misma estructura de categorías que tú
+verá la misma pantalla de bienvenida, y al hacer clic en "Load starter
+template" obtendrá exactamente la misma estructura de categorías que tú
 (basada en la tuya), completamente separada de tus datos — él la ajusta a
-sus números reales desde "Categorías".
+sus números reales desde "Categories".
 
 ---
 

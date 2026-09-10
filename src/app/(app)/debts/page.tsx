@@ -18,13 +18,13 @@ export default async function DebtsPage() {
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h1 className="text-xl font-semibold text-[var(--text-primary)]">Deudas</h1>
+        <h1 className="text-xl font-semibold text-[var(--text-primary)]">Debts</h1>
         <AddDebtForm />
       </div>
 
       {debts.length === 0 ? (
         <p className="text-sm text-[var(--text-muted)]">
-          No tienes deudas registradas.
+          You don&apos;t have any debts yet.
         </p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

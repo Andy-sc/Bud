@@ -47,14 +47,14 @@ function AccountRow({ account }: { account: Account }) {
             className="control px-2 py-1 border border-[var(--border)] bg-[var(--surface)] text-sm flex-1"
           />
           <button type="submit" className="text-xs text-[var(--series-1)]">
-            Guardar
+            Save
           </button>
           <button
             type="button"
             onClick={() => setEditing(false)}
             className="text-xs text-[var(--text-muted)]"
           >
-            Cancelar
+            Cancel
           </button>
         </form>
         {error && <p className="text-xs text-[var(--critical)]">{error}</p>}
@@ -83,7 +83,7 @@ function AccountRow({ account }: { account: Account }) {
         }
         className="text-xs text-[var(--text-muted)] hover:text-[var(--critical)]"
       >
-        Eliminar
+        Delete
       </button>
     </li>
   );
@@ -101,7 +101,7 @@ function NewAccountForm() {
         onClick={() => setOpen(true)}
         className="text-sm text-[var(--series-1)] hover:underline"
       >
-        + Agregar cuenta
+        + Add account
       </button>
     );
   }
@@ -127,7 +127,7 @@ function NewAccountForm() {
         autoFocus
         value={name}
         onChange={(e) => setName(e.target.value)}
-        placeholder="Nombre de la cuenta"
+        placeholder="Account name"
         className="control flex-1 px-3 py-2 border border-[var(--border)] bg-[var(--surface)] text-sm"
       />
       <button
@@ -135,10 +135,10 @@ function NewAccountForm() {
         disabled={pending}
         className="control px-4 py-2 text-sm font-medium text-white bg-[var(--series-1)] disabled:opacity-60"
       >
-        Agregar
+        Add
       </button>
       <button type="button" onClick={() => setOpen(false)} className="text-sm text-[var(--text-muted)]">
-        Cancelar
+        Cancel
       </button>
       {error && <p className="text-xs text-[var(--critical)]">{error}</p>}
     </form>

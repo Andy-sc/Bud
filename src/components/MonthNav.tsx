@@ -18,7 +18,7 @@ export default function MonthNav({
       <Link
         href={`${basePath}?year=${prev.year}&month=${prev.month}`}
         className="control w-10 h-10 flex items-center justify-center border border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)] hover:bg-[var(--surface-2)] transition"
-        aria-label="Mes anterior"
+        aria-label="Previous month"
       >
         ←
       </Link>
@@ -28,7 +28,7 @@ export default function MonthNav({
       <Link
         href={`${basePath}?year=${next.year}&month=${next.month}`}
         className="control w-10 h-10 flex items-center justify-center border border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)] hover:bg-[var(--surface-2)] transition"
-        aria-label="Mes siguiente"
+        aria-label="Next month"
       >
         →
       </Link>

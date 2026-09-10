@@ -27,7 +27,7 @@ export default async function IncomePage() {
   return (
     <div className="space-y-6">
       <h1 className="text-xl font-semibold text-[var(--text-primary)]">
-        Registrar ingreso
+        Log income
       </h1>
       <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6">
         <div className="card p-5">
@@ -36,7 +36,7 @@ export default async function IncomePage() {
 
         <div className="card p-5">
           <h2 className="font-semibold text-[var(--text-primary)] mb-3">
-            Últimos ingresos
+            Recent income
           </h2>
           <div className="divide-y divide-[var(--border)]">
             {(income as Income[] | null)?.length ? (
@@ -44,10 +44,10 @@ export default async function IncomePage() {
                 <div key={i.id} className="py-2.5 flex items-center justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-sm text-[var(--text-primary)] truncate">
-                      {i.source || "Ingreso"}
+                      {i.source || "Income"}
                     </p>
                     <p className="text-xs text-[var(--text-muted)]">
-                      {i.date} · {i.account_id ? accountById.get(i.account_id) : "sin cuenta"}
+                      {i.date} · {i.account_id ? accountById.get(i.account_id) : "no account"}
                       {i.note ? ` · ${i.note}` : ""}
                     </p>
                   </div>
@@ -59,7 +59,7 @@ export default async function IncomePage() {
                       <button
                         type="submit"
                         className="text-[var(--text-muted)] hover:text-[var(--critical)] text-sm"
-                        aria-label="Eliminar"
+                        aria-label="Delete"
                       >
                         ✕
                       </button>
@@ -69,7 +69,7 @@ export default async function IncomePage() {
               ))
             ) : (
               <p className="text-sm text-[var(--text-muted)] py-4">
-                Aún no has registrado ingresos.
+                You haven&apos;t logged any income yet.
               </p>
             )}
           </div>

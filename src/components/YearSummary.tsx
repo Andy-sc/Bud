@@ -7,7 +7,7 @@ export default function YearSummary({ data }: { data: YearSummaryData }) {
   return (
     <div className="card p-5 md:p-6">
       <p className="text-sm font-medium text-[var(--text-secondary)] mb-4">
-        Resumen {data.year} (año completo)
+        {data.year} summary (full year)
       </p>
       <div className="grid grid-cols-3 gap-4">
         <div>

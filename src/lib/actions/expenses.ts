@@ -8,7 +8,7 @@ export async function addExpense(formData: FormData) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("No autenticado");
+  if (!user) throw new Error("Not authenticated");
 
   const date = String(formData.get("date"));
   const amount = parseFloat(String(formData.get("amount")));
@@ -17,7 +17,7 @@ export async function addExpense(formData: FormData) {
   const note = String(formData.get("note") || "") || null;
 
   if (!date || !amount || !subcategory_id) {
-    throw new Error("Fecha, monto y subcategoría son obligatorios.");
+    throw new Error("Date, amount, and subcategory are required.");
   }
 
   const { error } = await supabase.from("expenses").insert({

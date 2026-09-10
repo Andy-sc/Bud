@@ -69,11 +69,11 @@ export default function PlannedVsActualChart({ data }: { data: Datum[] }) {
         </span>
         <span className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: "#0ca30c" }} />
-          Actual (bien)
+          Actual (on track)
         </span>
         <span className="flex items-center gap-1.5">
           <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: "#d03b3b" }} />
-          Actual (excedido)
+          Actual (over budget)
         </span>
       </div>
     </div>

@@ -19,21 +19,23 @@ export default async function SettingsPage() {
     <div className="space-y-8">
       <div>
         <h1 className="text-xl font-semibold text-[var(--text-primary)] mb-1">
-          Categorías y subcategorías
+          Categories &amp; subcategories
         </h1>
         <p className="text-sm text-[var(--text-secondary)] mb-4">
-          Agrega, edita o elimina lo que necesites. Los cambios se reflejan en
-          el resumen mensual al instante.
+          Add, edit, or remove whatever you need — a whole new category or
+          just a subcategory. Changes apply right away, this month and every
+          future month, no need to redo them each time.
         </p>
         <CategoryManager categories={categories} />
       </div>
 
       <div>
         <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-1">
-          Cuentas
+          Accounts
         </h2>
         <p className="text-sm text-[var(--text-secondary)] mb-4">
-          Las cuentas que aparecen al registrar gastos, ingresos y abonos.
+          The accounts that show up when logging expenses, income, and debt
+          payments.
         </p>
         <AccountManager accounts={accounts} />
       </div>

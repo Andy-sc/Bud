@@ -220,6 +220,10 @@ begin
   insert into public.categories (user_id, name, sort_order) values (uid, 'Buffer', 8) returning id into cat_buffer;
 
   -- Debts
+  -- A car loan is intentionally NOT seeded here: it needs a real balance and
+  -- APR that only the signed-in user knows. Add it from the Debts screen
+  -- ("+ New debt") with the real numbers — the app then computes the current
+  -- balance, and an estimated payoff date from the monthly payment.
   insert into public.debts (user_id, name, owed_to, original_amount, interest_rate, start_date)
     values (uid, 'Hermana', 'Sara', 1700, 0, '2026-07-01') returning id into debt_hermana;
 
@@ -228,8 +232,9 @@ begin
     (uid, cat_home, 'Rent + utilities', 'fixed', 1130, 1);
 
   -- Subcategories: Transportation
+  -- Note: the car loan itself is NOT here — it's a Debt (balance + interest +
+  -- payoff projection), added separately below as a linked debt/subcategory.
   insert into public.subcategories (user_id, category_id, name, type, planned_amount, sort_order) values
-    (uid, cat_transport, 'Car payment', 'fixed', 700, 1),
     (uid, cat_transport, 'Car insurance', 'fixed', 137.94, 2),
     (uid, cat_transport, 'Gas', 'variable', 135, 3),
     (uid, cat_transport, 'Maintenance', 'variable', 50, 4);

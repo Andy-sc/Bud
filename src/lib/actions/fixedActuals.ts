@@ -14,7 +14,7 @@ export async function setFixedActual(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("No autenticado");
+  if (!user) throw new Error("Not authenticated");
 
   const { error } = await supabase.from("fixed_actuals").upsert(
     {
@@ -41,7 +41,7 @@ export async function setMonthlyOverride(
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("No autenticado");
+  if (!user) throw new Error("Not authenticated");
 
   const { error } = await supabase.from("monthly_overrides").upsert(
     {
@@ -62,7 +62,7 @@ export async function setIncomePlan(year: number, month: number, amount: number)
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("No autenticado");
+  if (!user) throw new Error("Not authenticated");
 
   const { error } = await supabase.from("income_plan").upsert(
     { user_id: user.id, year, month, planned_amount: amount },

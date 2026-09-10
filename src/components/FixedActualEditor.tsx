@@ -25,7 +25,7 @@ export default function FixedActualEditor({
         type="button"
         onClick={() => setEditing(true)}
         className="text-sm tabular-nums text-[var(--text-secondary)] hover:text-[var(--series-1)] underline decoration-dotted underline-offset-2"
-        title="Editar monto real"
+        title="Edit actual amount"
       >
         {money(actual)}
       </button>

@@ -22,7 +22,7 @@ export default function DebtPaymentForm({
         onClick={() => setOpen(true)}
         className="text-sm font-medium text-[var(--series-1)] hover:underline"
       >
-        Registrar abono
+        Log a payment
       </button>
     );
   }
@@ -42,7 +42,7 @@ export default function DebtPaymentForm({
             setFormKey((k) => k + 1);
             setOpen(false);
           } catch (err) {
-            setError(err instanceof Error ? err.message : "Algo salió mal.");
+            setError(err instanceof Error ? err.message : "Something went wrong.");
           }
         });
       }}
@@ -60,7 +60,7 @@ export default function DebtPaymentForm({
           step="0.01"
           name="amount"
           required
-          placeholder="Monto"
+          placeholder="Amount"
           className="control px-2 py-1.5 border border-[var(--border)] bg-[var(--surface)] text-sm"
         />
       </div>
@@ -68,7 +68,7 @@ export default function DebtPaymentForm({
         name="account_id"
         className="control w-full px-2 py-1.5 border border-[var(--border)] bg-[var(--surface)] text-sm"
       >
-        <option value="">Sin especificar</option>
+        <option value="">Unspecified</option>
         {accounts.map((a) => (
           <option key={a.id} value={a.id}>
             {a.name}
@@ -78,7 +78,7 @@ export default function DebtPaymentForm({
       <input
         type="text"
         name="note"
-        placeholder="Nota (opcional)"
+        placeholder="Note (optional)"
         className="control w-full px-2 py-1.5 border border-[var(--border)] bg-[var(--surface)] text-sm"
       />
       {error && <p className="text-xs text-[var(--critical)]">{error}</p>}
@@ -88,14 +88,14 @@ export default function DebtPaymentForm({
           disabled={pending}
           className="control px-3 py-1.5 text-xs font-medium text-white bg-[var(--good)] disabled:opacity-60"
         >
-          {pending ? "Guardando..." : "Guardar abono"}
+          {pending ? "Saving..." : "Save payment"}
         </button>
         <button
           type="button"
           onClick={() => setOpen(false)}
           className="control px-3 py-1.5 text-xs font-medium text-[var(--text-secondary)]"
         >
-          Cancelar
+          Cancel
         </button>
       </div>
     </form>

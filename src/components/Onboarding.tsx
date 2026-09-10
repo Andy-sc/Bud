@@ -12,13 +12,13 @@ export default function Onboarding() {
       <div className="card max-w-md w-full p-8 text-center space-y-4">
         <div className="text-4xl">🌱</div>
         <h1 className="text-lg font-semibold text-[var(--text-primary)]">
-          ¡Bienvenida a tu presupuesto!
+          Welcome to your budget!
         </h1>
         <p className="text-sm text-[var(--text-secondary)]">
-          Todavía no tienes categorías configuradas. Carga la plantilla inicial
-          (Home, Transportation, Daily Living, Personal, Savings/Investing,
-          Travel, Debt, Buffer) con montos de ejemplo — luego puedes editar,
-          agregar o eliminar cualquier cosa desde &quot;Categorías&quot;.
+          You don&apos;t have any categories set up yet. Load the starter
+          template (Home, Transportation, Daily Living, Personal,
+          Savings/Investing, Travel, Debt, Buffer) with example amounts —
+          then edit, add, or remove anything from &quot;Categories&quot;.
         </p>
         {error && <p className="text-sm text-[var(--critical)]">{error}</p>}
         <button
@@ -28,13 +28,13 @@ export default function Onboarding() {
               try {
                 await seedStarterBudget();
               } catch (e) {
-                setError(e instanceof Error ? e.message : "Algo salió mal.");
+                setError(e instanceof Error ? e.message : "Something went wrong.");
               }
             })
           }
           className="control w-full py-3 font-medium text-white bg-[var(--series-1)] hover:opacity-90 disabled:opacity-60 transition"
         >
-          {pending ? "Cargando..." : "Cargar plantilla inicial"}
+          {pending ? "Loading..." : "Load starter template"}
         </button>
       </div>
     </div>

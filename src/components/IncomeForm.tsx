@@ -22,13 +22,13 @@ export default function IncomeForm({ accounts }: { accounts: Account[] }) {
             await addIncome(formData);
             setFormKey((k) => k + 1);
           } catch (err) {
-            setError(err instanceof Error ? err.message : "Algo salió mal.");
+            setError(err instanceof Error ? err.message : "Something went wrong.");
           }
         });
       }}
     >
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Fecha">
+        <Field label="Date">
           <input
             type="date"
             name="date"
@@ -37,7 +37,7 @@ export default function IncomeForm({ accounts }: { accounts: Account[] }) {
             className="control w-full px-3 py-2 border border-[var(--border)] bg-[var(--surface)] text-sm"
           />
         </Field>
-        <Field label="Monto">
+        <Field label="Amount">
           <input
             type="number"
             step="0.01"
@@ -49,21 +49,21 @@ export default function IncomeForm({ accounts }: { accounts: Account[] }) {
         </Field>
       </div>
 
-      <Field label="Fuente">
+      <Field label="Source">
         <input
           type="text"
           name="source"
-          placeholder="ej. Paycheck"
+          placeholder="e.g. Paycheck"
           className="control w-full px-3 py-2 border border-[var(--border)] bg-[var(--surface)] text-sm"
         />
       </Field>
 
-      <Field label="Cuenta">
+      <Field label="Account">
         <select
           name="account_id"
           className="control w-full px-3 py-2 border border-[var(--border)] bg-[var(--surface)] text-sm"
         >
-          <option value="">Sin especificar</option>
+          <option value="">Unspecified</option>
           {accounts.map((a) => (
             <option key={a.id} value={a.id}>
               {a.name}
@@ -72,7 +72,7 @@ export default function IncomeForm({ accounts }: { accounts: Account[] }) {
         </select>
       </Field>
 
-      <Field label="Nota (opcional)">
+      <Field label="Note (optional)">
         <input
           type="text"
           name="note"
@@ -87,7 +87,7 @@ export default function IncomeForm({ accounts }: { accounts: Account[] }) {
         disabled={pending}
         className="control w-full py-2.5 font-medium text-white bg-[var(--good)] hover:opacity-90 disabled:opacity-60 transition"
       >
-        {pending ? "Guardando..." : "Registrar ingreso"}
+        {pending ? "Saving..." : "Log income"}
       </button>
     </form>
   );

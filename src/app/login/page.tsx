@@ -7,10 +7,10 @@ export default function LoginPage() {
         <div className="text-center mb-8">
           <div className="text-3xl mb-2">💰</div>
           <h1 className="text-xl font-semibold text-[var(--text-primary)]">
-            Bud — Presupuesto personal
+            Bud — Personal Budget
           </h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">
-            Entra con tu correo, sin contraseña.
+            Sign in with your email, no password needed.
           </p>
         </div>
         <LoginForm />

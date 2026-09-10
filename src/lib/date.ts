@@ -1,20 +1,20 @@
-const MONTH_NAMES_ES = [
-  "Enero",
-  "Febrero",
-  "Marzo",
-  "Abril",
-  "Mayo",
-  "Junio",
-  "Julio",
-  "Agosto",
-  "Septiembre",
-  "Octubre",
-  "Noviembre",
-  "Diciembre",
+const MONTH_NAMES = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
 ];
 
 export function monthLabel(year: number, month: number) {
-  return `${MONTH_NAMES_ES[month - 1]} ${year}`;
+  return `${MONTH_NAMES[month - 1]} ${year}`;
 }
 
 export function shiftMonth(year: number, month: number, delta: number) {

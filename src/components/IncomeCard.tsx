@@ -60,7 +60,7 @@ export default function IncomeCard({
             onClick={() => setEditing(true)}
             className="text-xs text-[var(--text-muted)] hover:text-[var(--series-1)] underline decoration-dotted underline-offset-2"
           >
-            editar meta: {money(planned)}
+            edit goal: {money(planned)}
           </button>
         )}
       </div>
@@ -69,7 +69,7 @@ export default function IncomeCard({
           {money(actual)}
         </span>
         <span className="tabular-nums text-[var(--text-muted)]">
-          meta {money(planned)}
+          goal {money(planned)}
         </span>
       </div>
       <ProgressBar pctUsed={pctUsed} />

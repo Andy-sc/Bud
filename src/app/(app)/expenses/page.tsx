@@ -32,7 +32,7 @@ export default async function ExpensesPage() {
   return (
     <div className="space-y-6">
       <h1 className="text-xl font-semibold text-[var(--text-primary)]">
-        Registrar gasto
+        Log expense
       </h1>
       <div className="grid grid-cols-1 lg:grid-cols-[380px_1fr] gap-6">
         <div className="card p-5">
@@ -41,7 +41,7 @@ export default async function ExpensesPage() {
 
         <div className="card p-5">
           <h2 className="font-semibold text-[var(--text-primary)] mb-3">
-            Últimos gastos
+            Recent expenses
           </h2>
           <div className="divide-y divide-[var(--border)]">
             {(expenses as Expense[] | null)?.length ? (
@@ -52,7 +52,7 @@ export default async function ExpensesPage() {
                       {subcatById.get(e.subcategory_id) ?? "—"}
                     </p>
                     <p className="text-xs text-[var(--text-muted)]">
-                      {e.date} · {e.account_id ? accountById.get(e.account_id) : "sin cuenta"}
+                      {e.date} · {e.account_id ? accountById.get(e.account_id) : "no account"}
                       {e.note ? ` · ${e.note}` : ""}
                     </p>
                   </div>
@@ -64,7 +64,7 @@ export default async function ExpensesPage() {
                       <button
                         type="submit"
                         className="text-[var(--text-muted)] hover:text-[var(--critical)] text-sm"
-                        aria-label="Eliminar"
+                        aria-label="Delete"
                       >
                         ✕
                       </button>
@@ -74,7 +74,7 @@ export default async function ExpensesPage() {
               ))
             ) : (
               <p className="text-sm text-[var(--text-muted)] py-4">
-                Aún no has registrado gastos.
+                You haven&apos;t logged any expenses yet.
               </p>
             )}
           </div>

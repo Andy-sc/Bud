@@ -9,7 +9,7 @@ async function currentUserId() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("No autenticado");
+  if (!user) throw new Error("Not authenticated");
   return { supabase, userId: user.id };
 }
 
@@ -40,7 +40,7 @@ export async function deleteCategory(id: string) {
   const { error } = await supabase.from("categories").delete().eq("id", id);
   if (error) {
     throw new Error(
-      "No se puede eliminar: primero elimina o mueve sus subcategorías."
+      "Can't delete: remove or move its subcategories first."
     );
   }
   revalidatePath("/settings");
@@ -87,7 +87,7 @@ export async function deleteSubcategory(id: string) {
   const { error } = await supabase.from("subcategories").delete().eq("id", id);
   if (error) {
     throw new Error(
-      "No se puede eliminar: ya tiene gastos registrados en el historial."
+      "Can't delete: it already has expenses logged in your history."
     );
   }
   revalidatePath("/settings");
@@ -118,7 +118,7 @@ export async function deleteAccount(id: string) {
   const { supabase } = await currentUserId();
   const { error } = await supabase.from("accounts").delete().eq("id", id);
   if (error) {
-    throw new Error("No se puede eliminar: ya tiene movimientos registrados.");
+    throw new Error("Can't delete: it already has logged transactions.");
   }
   revalidatePath("/settings");
 }

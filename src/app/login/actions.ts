@@ -13,7 +13,7 @@ export async function sendMagicLink(
 ): Promise<LoginState> {
   const email = String(formData.get("email") ?? "").trim();
   if (!email) {
-    return { status: "error", message: "Escribe tu correo." };
+    return { status: "error", message: "Enter your email." };
   }
 
   const supabase = await createClient();

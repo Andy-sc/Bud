@@ -35,8 +35,8 @@ export default function ExpenseForm({
   if (variableCategories.length === 0) {
     return (
       <p className="text-sm text-[var(--text-muted)]">
-        No tienes subcategorías de tipo Variable todavía. Créalas en
-        &quot;Categorías&quot;.
+        You don&apos;t have any Variable subcategories yet. Create them in
+        &quot;Categories&quot;.
       </p>
     );
   }
@@ -54,13 +54,13 @@ export default function ExpenseForm({
             await addExpense(formData);
             setFormKey((k) => k + 1);
           } catch (err) {
-            setError(err instanceof Error ? err.message : "Algo salió mal.");
+            setError(err instanceof Error ? err.message : "Something went wrong.");
           }
         });
       }}
     >
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Fecha">
+        <Field label="Date">
           <input
             type="date"
             name="date"
@@ -69,7 +69,7 @@ export default function ExpenseForm({
             className="control w-full px-3 py-2 border border-[var(--border)] bg-[var(--surface)] text-sm"
           />
         </Field>
-        <Field label="Monto">
+        <Field label="Amount">
           <input
             type="number"
             step="0.01"
@@ -81,7 +81,7 @@ export default function ExpenseForm({
         </Field>
       </div>
 
-      <Field label="Categoría">
+      <Field label="Category">
         <select
           value={categoryId}
           onChange={(e) => setCategoryId(e.target.value)}
@@ -95,7 +95,7 @@ export default function ExpenseForm({
         </select>
       </Field>
 
-      <Field label="Subcategoría">
+      <Field label="Subcategory">
         <select
           name="subcategory_id"
           required
@@ -109,12 +109,12 @@ export default function ExpenseForm({
         </select>
       </Field>
 
-      <Field label="Cuenta">
+      <Field label="Account">
         <select
           name="account_id"
           className="control w-full px-3 py-2 border border-[var(--border)] bg-[var(--surface)] text-sm"
         >
-          <option value="">Sin especificar</option>
+          <option value="">Unspecified</option>
           {accounts.map((a) => (
             <option key={a.id} value={a.id}>
               {a.name}
@@ -123,11 +123,11 @@ export default function ExpenseForm({
         </select>
       </Field>
 
-      <Field label="Nota (opcional)">
+      <Field label="Note (optional)">
         <input
           type="text"
           name="note"
-          placeholder="ej. supermercado semanal"
+          placeholder="e.g. weekly groceries"
           className="control w-full px-3 py-2 border border-[var(--border)] bg-[var(--surface)] text-sm"
         />
       </Field>
@@ -139,7 +139,7 @@ export default function ExpenseForm({
         disabled={pending}
         className="control w-full py-2.5 font-medium text-white bg-[var(--series-1)] hover:opacity-90 disabled:opacity-60 transition"
       >
-        {pending ? "Guardando..." : "Registrar gasto"}
+        {pending ? "Saving..." : "Log expense"}
       </button>
     </form>
   );

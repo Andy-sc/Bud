@@ -22,7 +22,7 @@ export default function SpendingByAccountChart({
   if (data.length === 0) {
     return (
       <p className="text-sm text-[var(--text-muted)] py-10 text-center">
-        Aún no hay gastos registrados este mes.
+        No expenses logged yet this month.
       </p>
     );
   }

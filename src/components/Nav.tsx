@@ -5,11 +5,11 @@ import { usePathname } from "next/navigation";
 import { signOut } from "@/app/(app)/actions";
 
 const LINKS = [
-  { href: "/dashboard", label: "Resumen", icon: "📊" },
-  { href: "/expenses", label: "Gastos", icon: "🧾" },
-  { href: "/income", label: "Ingresos", icon: "💵" },
-  { href: "/debts", label: "Deudas", icon: "📉" },
-  { href: "/settings", label: "Categorías", icon: "⚙️" },
+  { href: "/dashboard", label: "Overview", icon: "📊" },
+  { href: "/expenses", label: "Expenses", icon: "🧾" },
+  { href: "/income", label: "Income", icon: "💵" },
+  { href: "/debts", label: "Debts", icon: "📉" },
+  { href: "/settings", label: "Categories", icon: "⚙️" },
 ];
 
 export default function Nav({ email }: { email?: string }) {
@@ -51,7 +51,7 @@ export default function Nav({ email }: { email?: string }) {
               type="submit"
               className="text-sm text-[var(--text-secondary)] hover:text-[var(--critical)] transition"
             >
-              Cerrar sesión
+              Sign out
             </button>
           </form>
         </div>
@@ -65,7 +65,7 @@ export default function Nav({ email }: { email?: string }) {
         </div>
         <form action={signOut}>
           <button type="submit" className="text-sm text-[var(--text-secondary)]">
-            Salir
+            Sign out
           </button>
         </form>
       </header>

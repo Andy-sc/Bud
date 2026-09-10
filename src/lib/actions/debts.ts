@@ -8,7 +8,7 @@ export async function addDebt(formData: FormData) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("No autenticado");
+  if (!user) throw new Error("Not authenticated");
 
   const name = String(formData.get("name") || "").trim();
   const owed_to = String(formData.get("owed_to") || "") || null;
@@ -18,7 +18,7 @@ export async function addDebt(formData: FormData) {
   const monthly_payment = parseFloat(String(formData.get("monthly_payment"))) || 0;
 
   if (!name || !original_amount) {
-    throw new Error("Nombre y monto original son obligatorios.");
+    throw new Error("Name and original amount are required.");
   }
 
   const { data: debt, error } = await supabase
@@ -65,7 +65,7 @@ export async function addDebtPayment(formData: FormData) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) throw new Error("No autenticado");
+  if (!user) throw new Error("Not authenticated");
 
   const debt_id = String(formData.get("debt_id"));
   const date = String(formData.get("date"));
@@ -74,7 +74,7 @@ export async function addDebtPayment(formData: FormData) {
   const note = String(formData.get("note") || "") || null;
 
   if (!debt_id || !date || !amount) {
-    throw new Error("Deuda, fecha y monto son obligatorios.");
+    throw new Error("Debt, date, and amount are required.");
   }
 
   const { error } = await supabase.from("debt_payments").insert({
@@ -94,6 +94,31 @@ export async function addDebtPayment(formData: FormData) {
 export async function deleteDebtPayment(id: string) {
   const supabase = await createClient();
   const { error } = await supabase.from("debt_payments").delete().eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/debts");
+  revalidatePath("/dashboard");
+}
+
+export async function updateDebtDetails(
+  debtId: string,
+  fields: { owed_to?: string; original_amount?: number; interest_rate?: number }
+) {
+  const supabase = await createClient();
+  const { error } = await supabase.from("debts").update(fields).eq("id", debtId);
+  if (error) throw new Error(error.message);
+  revalidatePath("/debts");
+  revalidatePath("/dashboard");
+}
+
+export async function updateDebtPlannedPayment(
+  subcategoryId: string,
+  plannedAmount: number
+) {
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("subcategories")
+    .update({ planned_amount: plannedAmount })
+    .eq("id", subcategoryId);
   if (error) throw new Error(error.message);
   revalidatePath("/debts");
   revalidatePath("/dashboard");

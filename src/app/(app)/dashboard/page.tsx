@@ -56,16 +56,16 @@ export default async function DashboardPage({
           actual={budget.incomeActual}
         />
         <div className="card p-5 space-y-1">
-          <p className="text-xs text-[var(--text-muted)]">Total Expenses (mes)</p>
+          <p className="text-xs text-[var(--text-muted)]">Total Expenses (month)</p>
           <p className="text-lg font-semibold tabular-nums text-[var(--series-8)]">
             {money(budget.expensesActual)}
           </p>
           <p className="text-xs text-[var(--text-muted)] tabular-nums">
-            de {money(budget.expensesPlanned)} planeado
+            of {money(budget.expensesPlanned)} planned
           </p>
         </div>
         <div className="card p-5 space-y-1">
-          <p className="text-xs text-[var(--text-muted)]">Balance (mes)</p>
+          <p className="text-xs text-[var(--text-muted)]">Balance (month)</p>
           <p
             className="text-lg font-semibold tabular-nums"
             style={{ color: balanceActual >= 0 ? "var(--good)" : "var(--critical)" }}
@@ -81,13 +81,13 @@ export default async function DashboardPage({
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="card p-5">
           <h3 className="font-semibold text-[var(--text-primary)] mb-2">
-            Planned vs Actual por categoría
+            Planned vs Actual by category
           </h3>
           <PlannedVsActualChart data={chartData} />
         </div>
         <div className="card p-5">
           <h3 className="font-semibold text-[var(--text-primary)] mb-2">
-            Gastos por cuenta
+            Spending by account
           </h3>
           <SpendingByAccountChart data={accountSpending} />
         </div>

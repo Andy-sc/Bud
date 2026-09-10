@@ -292,36 +292,91 @@ export interface DebtComputed extends Debt {
   paidSoFar: number;
   currentBalance: number;
   pctPaid: number;
+  plannedMonthlyPayment: number;
+  subcategoryId: string | null;
 }
 
 export async function getDebtsWithBalance(
   supabase: SupabaseClient,
   userId: string
 ): Promise<DebtComputed[]> {
-  const [{ data: debts }, { data: payments }] = await Promise.all([
-    supabase
-      .from("debts")
-      .select("*")
-      .eq("user_id", userId)
-      .order("created_at"),
-    supabase.from("debt_payments").select("debt_id, amount").eq("user_id", userId),
-  ]);
+  const [{ data: debts }, { data: payments }, { data: subcategories }] =
+    await Promise.all([
+      supabase
+        .from("debts")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at"),
+      supabase.from("debt_payments").select("debt_id, amount").eq("user_id", userId),
+      supabase
+        .from("subcategories")
+        .select("id, debt_id, planned_amount")
+        .eq("user_id", userId)
+        .eq("type", "debt"),
+    ]);
 
   const paidByDebt = new Map<string, number>();
   for (const p of payments ?? []) {
     paidByDebt.set(p.debt_id, (paidByDebt.get(p.debt_id) ?? 0) + Number(p.amount));
   }
 
+  const subcatByDebt = new Map<string, { id: string; planned_amount: number }>();
+  for (const s of subcategories ?? []) {
+    if (s.debt_id) subcatByDebt.set(s.debt_id, s);
+  }
+
   return (debts ?? []).map((d: Debt) => {
     const paidSoFar = paidByDebt.get(d.id) ?? 0;
     const original = Number(d.original_amount);
+    const linkedSub = subcatByDebt.get(d.id);
     return {
       ...d,
       paidSoFar,
       currentBalance: original - paidSoFar,
       pctPaid: original ? paidSoFar / original : 0,
+      plannedMonthlyPayment: linkedSub ? Number(linkedSub.planned_amount) : 0,
+      subcategoryId: linkedSub?.id ?? null,
     };
   });
+}
+
+export type PayoffEstimate =
+  | { status: "paid-off" }
+  | { status: "no-payment" }
+  | { status: "payment-too-low" }
+  | { status: "ok"; months: number; payoffDate: Date };
+
+/**
+ * Standard loan-amortization payoff estimate: given a balance, an annual
+ * interest rate, and a fixed monthly payment, how many months until the
+ * balance reaches zero. Interest-free debts (rate 0) just divide balance
+ * by payment.
+ */
+export function estimatePayoff(
+  balance: number,
+  annualRatePct: number,
+  monthlyPayment: number,
+  from: Date = new Date()
+): PayoffEstimate {
+  if (balance <= 0) return { status: "paid-off" };
+  if (monthlyPayment <= 0) return { status: "no-payment" };
+
+  const r = annualRatePct / 100 / 12;
+  let months: number;
+
+  if (r === 0) {
+    months = Math.ceil(balance / monthlyPayment);
+  } else {
+    if (monthlyPayment <= balance * r) {
+      return { status: "payment-too-low" };
+    }
+    months = Math.ceil(
+      -Math.log(1 - (balance * r) / monthlyPayment) / Math.log(1 + r)
+    );
+  }
+
+  const payoffDate = new Date(from.getFullYear(), from.getMonth() + months, 1);
+  return { status: "ok", months, payoffDate };
 }
 
 export interface AccountSpending {
@@ -360,13 +415,13 @@ export async function getSpendingByAccount(
 
   const totals = new Map<string, number>();
   for (const row of [...(expenses ?? []), ...(debtPayments ?? [])]) {
-    const key = row.account_id ?? "sin-cuenta";
+    const key = row.account_id ?? "no-account";
     totals.set(key, (totals.get(key) ?? 0) + Number(row.amount));
   }
 
   return Array.from(totals.entries()).map(([key, amount]) => ({
-    accountId: key === "sin-cuenta" ? null : key,
-    accountName: key === "sin-cuenta" ? "Sin cuenta" : nameById.get(key) ?? "?",
+    accountId: key === "no-account" ? null : key,
+    accountName: key === "no-account" ? "No account" : nameById.get(key) ?? "?",
     amount,
   }));
 }

@@ -14,7 +14,7 @@ export default function AddDebtForm() {
         onClick={() => setOpen(true)}
         className="control px-4 py-2 text-sm font-medium border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-2)] transition"
       >
-        + Nueva deuda
+        + New debt
       </button>
     );
   }
@@ -31,28 +31,28 @@ export default function AddDebtForm() {
             await addDebt(formData);
             setOpen(false);
           } catch (err) {
-            setError(err instanceof Error ? err.message : "Algo salió mal.");
+            setError(err instanceof Error ? err.message : "Something went wrong.");
           }
         });
       }}
     >
       <div className="grid grid-cols-2 gap-3">
-        <Field label="Nombre">
+        <Field label="Name">
           <input name="name" required className="input" />
         </Field>
-        <Field label="A quién se le debe">
+        <Field label="Owed to">
           <input name="owed_to" className="input" />
         </Field>
-        <Field label="Monto original">
+        <Field label="Original amount">
           <input name="original_amount" type="number" step="0.01" required className="input" />
         </Field>
-        <Field label="Tasa de interés anual (%)">
+        <Field label="Annual interest rate (%)">
           <input name="interest_rate" type="number" step="0.01" defaultValue="0" className="input" />
         </Field>
-        <Field label="Fecha de inicio">
+        <Field label="Start date">
           <input name="start_date" type="date" className="input" />
         </Field>
-        <Field label="Pago planeado mensual">
+        <Field label="Planned monthly payment">
           <input name="monthly_payment" type="number" step="0.01" defaultValue="0" className="input" />
         </Field>
       </div>
@@ -63,14 +63,14 @@ export default function AddDebtForm() {
           disabled={pending}
           className="control px-4 py-2 text-sm font-medium text-white bg-[var(--series-1)] hover:opacity-90 disabled:opacity-60"
         >
-          {pending ? "Guardando..." : "Guardar deuda"}
+          {pending ? "Saving..." : "Save debt"}
         </button>
         <button
           type="button"
           onClick={() => setOpen(false)}
           className="control px-4 py-2 text-sm font-medium text-[var(--text-secondary)]"
         >
-          Cancelar
+          Cancel
         </button>
       </div>
       <style jsx>{`

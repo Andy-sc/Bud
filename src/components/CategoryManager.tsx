@@ -15,9 +15,9 @@ import type { Category, Subcategory, SubcategoryType } from "@/lib/database.type
 type CategoryWithSubs = Category & { subcategories: Subcategory[] };
 
 const TYPE_LABEL: Record<SubcategoryType, string> = {
-  fixed: "Fijo",
+  fixed: "Fixed",
   variable: "Variable",
-  debt: "Deuda",
+  debt: "Debt",
 };
 
 export default function CategoryManager({
@@ -67,14 +67,14 @@ function CategoryRow({ category }: { category: CategoryWithSubs }) {
               className="control px-2 py-1 border border-[var(--border)] bg-[var(--surface)] text-sm font-semibold"
             />
             <button type="submit" className="text-xs text-[var(--series-1)]">
-              Guardar
+              Save
             </button>
             <button
               type="button"
               onClick={() => setEditingName(false)}
               className="text-xs text-[var(--text-muted)]"
             >
-              Cancelar
+              Cancel
             </button>
           </form>
         ) : (
@@ -99,7 +99,7 @@ function CategoryRow({ category }: { category: CategoryWithSubs }) {
             }
             className="text-xs text-[var(--text-muted)] hover:text-[var(--critical)]"
           >
-            Eliminar categoría
+            Delete category
           </button>
         )}
       </div>
@@ -122,7 +122,7 @@ function CategoryRow({ category }: { category: CategoryWithSubs }) {
           onClick={() => setAddingSub(true)}
           className="text-sm text-[var(--series-1)] hover:underline"
         >
-          + Agregar subcategoría
+          + Add subcategory
         </button>
       )}
     </div>
@@ -142,7 +142,7 @@ function SubcategoryRow({ sub }: { sub: Subcategory }) {
         <div>
           <p className="text-[var(--text-primary)]">{sub.name}</p>
           <p className="text-xs text-[var(--text-muted)]">
-            Deuda · gestiónala desde la pestaña &quot;Deudas&quot;
+            Debt · manage it from the &quot;Debts&quot; tab
           </p>
         </div>
         <span className="text-sm tabular-nums text-[var(--text-secondary)]">
@@ -182,14 +182,14 @@ function SubcategoryRow({ sub }: { sub: Subcategory }) {
             className="control w-24 px-2 py-1 border border-[var(--border)] bg-[var(--surface)] text-sm"
           />
           <button type="submit" disabled={pending} className="text-xs text-[var(--series-1)]">
-            Guardar
+            Save
           </button>
           <button
             type="button"
             onClick={() => setEditing(false)}
             className="text-xs text-[var(--text-muted)]"
           >
-            Cancelar
+            Cancel
           </button>
         </form>
         {error && <p className="text-xs text-[var(--critical)] mt-1">{error}</p>}
@@ -220,7 +220,7 @@ function SubcategoryRow({ sub }: { sub: Subcategory }) {
         }
         className="text-[var(--text-muted)] hover:text-[var(--critical)] text-xs shrink-0"
       >
-        Eliminar
+        Delete
       </button>
     </li>
   );
@@ -258,7 +258,7 @@ function NewSubcategoryForm({
       <input
         value={name}
         onChange={(e) => setName(e.target.value)}
-        placeholder="Nombre"
+        placeholder="Name"
         className="control px-2 py-1.5 border border-[var(--border)] bg-[var(--surface)] text-sm flex-1 min-w-[120px]"
       />
       <select
@@ -267,7 +267,7 @@ function NewSubcategoryForm({
         className="control px-2 py-1.5 border border-[var(--border)] bg-[var(--surface)] text-sm"
       >
         <option value="variable">Variable</option>
-        <option value="fixed">Fijo</option>
+        <option value="fixed">Fixed</option>
       </select>
       <input
         type="number"
@@ -282,10 +282,10 @@ function NewSubcategoryForm({
         disabled={pending}
         className="control px-3 py-1.5 text-sm font-medium text-white bg-[var(--series-1)] disabled:opacity-60"
       >
-        Agregar
+        Add
       </button>
       <button type="button" onClick={onDone} className="text-sm text-[var(--text-muted)]">
-        Cancelar
+        Cancel
       </button>
       {error && <p className="text-xs text-[var(--critical)] w-full">{error}</p>}
     </form>
@@ -304,7 +304,7 @@ function NewCategoryForm() {
         onClick={() => setOpen(true)}
         className="control px-4 py-2 text-sm font-medium border border-[var(--border)] bg-[var(--surface)] hover:bg-[var(--surface-2)]"
       >
-        + Nueva categoría
+        + New category
       </button>
     );
   }
@@ -330,7 +330,7 @@ function NewCategoryForm() {
         autoFocus
         value={name}
         onChange={(e) => setName(e.target.value)}
-        placeholder="Nombre de la categoría"
+        placeholder="Category name"
         className="control flex-1 px-3 py-2 border border-[var(--border)] bg-[var(--surface)] text-sm"
       />
       <button
@@ -338,10 +338,10 @@ function NewCategoryForm() {
         disabled={pending}
         className="control px-4 py-2 text-sm font-medium text-white bg-[var(--series-1)] disabled:opacity-60"
       >
-        Agregar
+        Add
       </button>
       <button type="button" onClick={() => setOpen(false)} className="text-sm text-[var(--text-muted)]">
-        Cancelar
+        Cancel
       </button>
       {error && <p className="text-xs text-[var(--critical)]">{error}</p>}
     </form>
