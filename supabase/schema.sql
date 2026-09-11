@@ -259,8 +259,11 @@ begin
     (uid, cat_savings, 'Emergency savings', 'fixed', 500, 2);
 
   -- Subcategories: Travel
+  -- Lowered from 500 to 250 so the budget closes in a 4-paycheck month
+  -- (see the balance math worked out with the user) while still leaving
+  -- room in 5-paycheck months.
   insert into public.subcategories (user_id, category_id, name, type, planned_amount, sort_order) values
-    (uid, cat_travel, 'Travel fund', 'fixed', 500, 1);
+    (uid, cat_travel, 'Travel fund', 'fixed', 250, 1);
 
   -- Subcategories: Debt (linked to the debt above)
   insert into public.subcategories (user_id, category_id, name, type, planned_amount, debt_id, sort_order) values
