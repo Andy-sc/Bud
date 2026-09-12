@@ -25,7 +25,7 @@ español solo porque así hablamos — es la guía para ti, no parte de la app.
   Checking, Chase Savings, Chase Credit, Vanguard, Venmo).
 - **Administrar categorías**: agrega, edita o elimina categorías,
   subcategorías y cuentas sin tocar código.
-- **Un login por persona** (magic link, sin contraseña) — tú y tu novio
+- **Un login por persona** (magic link, sin contraseña) — tú y Jose
   pueden tener cada uno su propio presupuesto separado en la misma app.
 
 Construida con Next.js (React) + Supabase (base de datos y autenticación) +
@@ -111,7 +111,7 @@ correo, y ya puedes usar la app desde cualquier lugar.
    ($700 o el que uses); la app te muestra el saldo restante y una fecha
    estimada de cuándo terminas de pagarlo, que se actualiza si subes o
    bajas la cuota.
-3. *(Opcional, solo para tu cuenta, no la de tu novio)* — si quieres que la
+3. *(Opcional, solo para tu cuenta, no la de Jose)* — si quieres que la
    app arranque reflejando tus saldos reales y tu primer pago ya recibido,
    ve a Supabase → **SQL Editor**, abre
    [`supabase/seed_my_real_data.sql`](./supabase/seed_my_real_data.sql),
@@ -126,18 +126,18 @@ correo, y ya puedes usar la app desde cualquier lugar.
    automáticamente a este mes y a todos los meses futuros, no hay que
    repetirlo cada mes.
 
-## Agregar el perfil de tu novio
+## Agregar el perfil de Jose
 
 Cada persona tiene su propio login (magic link con su correo), así que sus
 datos quedan 100% separados de los tuyos automáticamente. Pasos:
 
-1. Pídele que entre a la misma URL de Vercel con **su propio correo**.
-   Supabase le crea su cuenta al instante. Va a ver la pantalla de
-   bienvenida ("Load starter template") — **que no le dé clic todavía**.
+1. Pídele a Jose que entre a la misma URL de Vercel con **su propio
+   correo**. Supabase le crea su cuenta al instante. Va a ver la pantalla
+   de bienvenida ("Load starter template") — **que no le dé clic todavía**.
 2. Ve a Supabase → **SQL Editor**, abre
-   [`supabase/seed_boyfriend_budget.sql`](./supabase/seed_boyfriend_budget.sql),
-   reemplaza `REPLACE_WITH_HIS_EMAIL@example.com` por el correo exacto con
-   el que él entró, y dale **Run**.
+   [`supabase/seed_jose_budget.sql`](./supabase/seed_jose_budget.sql),
+   reemplaza `REPLACE_WITH_JOSES_EMAIL@example.com` por el correo exacto
+   con el que Jose entró, y dale **Run**.
 3. Esto le crea la misma estructura de categorías que la tuya (Home,
    Transportation, Daily Living, Personal, Savings/Investing, Travel,
    Debt, Buffer) pero **en ceros**, para que él las llene con sus propios
@@ -177,9 +177,9 @@ datos quedan 100% separados de los tuyos automáticamente. Pasos:
   función que carga la plantilla inicial de categorías.
 - `supabase/seed_my_real_data.sql` — opcional, solo para tu cuenta: tus
   saldos y primer pago reales.
-- `supabase/seed_boyfriend_budget.sql` — opcional, solo para la cuenta de
-  tu novio: crea su misma estructura de categorías en ceros, más sus
-  cuentas y deudas reales.
+- `supabase/seed_jose_budget.sql` — opcional, solo para la cuenta de Jose:
+  crea su misma estructura de categorías en ceros, más sus cuentas y
+  deudas reales.
 - `src/app/` — páginas (Next.js App Router).
 - `src/lib/budget.ts` — toda la lógica de Planned vs Actual, saldos de
   deuda y resumen anual.

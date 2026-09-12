@@ -1,33 +1,33 @@
--- OPTIONAL — sets up a second, fully separate budget profile (your
--- boyfriend's) with the same category structure as Maria's, but with his
--- own accounts and blank planned amounts for him to fill in.
+-- OPTIONAL — sets up a second, fully separate budget profile (Jose's)
+-- with the same category structure as Maria's, but with his own accounts
+-- and blank planned amounts for him to fill in.
 --
 -- Requires:
 --   1) schema.sql has already been run once (shared by all users).
---   2) He has signed in to the app at least once with his own email
+--   2) Jose has signed in to the app at least once with his own email
 --      (this creates his auth.users row — the login screen is enough,
 --      he doesn't need to click "Load starter template").
 --
 -- Do NOT have him click "Load starter template" before running this — that
 -- button loads Maria's category structure with HER planned amounts. This
--- script builds his own structure directly. If he clicks it afterward by
+-- script builds Jose's structure directly. If he clicks it afterward by
 -- mistake, it's harmless: that function skips itself once categories
 -- already exist for a user.
 --
 -- Real numbers used below (from what Maria provided): Capital One card
 -- balances, the Amex balance, and the student loan balance + monthly
 -- payment. Everything else (rent, groceries, gas, etc.) is seeded at $0 so
--- he can fill in his own real amounts from "Categories" once he's signed
+-- Jose can fill in his own real amounts from "Categories" once he's signed
 -- in. Account names for the two Capital One cards are left generic
 -- ("Capital One Card 1/2") since we don't have his names for them — he can
 -- rename any account from Categories -> Accounts.
 --
--- HOW TO RUN: replace target_email below with his real sign-in email,
+-- HOW TO RUN: replace target_email below with Jose's real sign-in email,
 -- then run the whole file in the Supabase SQL Editor.
 
 do $$
 declare
-  target_email text := 'REPLACE_WITH_HIS_EMAIL@example.com'; -- <-- put his real sign-in email here
+  target_email text := 'REPLACE_WITH_JOSES_EMAIL@example.com'; -- <-- put Jose's real sign-in email here
   uid uuid;
   cat_home uuid;
   cat_transport uuid;
@@ -43,7 +43,7 @@ begin
   select id into uid from auth.users where email = target_email;
 
   if uid is null then
-    raise exception 'No user found with email %. Have him sign in to the app at least once first, then re-run this with his real email.', target_email;
+    raise exception 'No user found with email %. Have Jose sign in to the app at least once first, then re-run this with his real email.', target_email;
   end if;
 
   if exists (select 1 from public.categories where user_id = uid) then

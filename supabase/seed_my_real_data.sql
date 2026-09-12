@@ -3,7 +3,7 @@
 --   2) Signed in to the app at least once and clicked "Load starter template"
 --      (this creates her categories/accounts/debt via seed_starter_budget())
 --
--- Do NOT run this for the boyfriend's account — it contains Maria's real numbers.
+-- Do NOT run this for Jose's account — it contains Maria's real numbers.
 --
 -- This backfills the real account balances and the two paychecks she's
 -- reported so far, so the app reflects reality instead of starting from
