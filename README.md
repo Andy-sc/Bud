@@ -115,9 +115,10 @@ correo, y ya puedes usar la app desde cualquier lugar.
    app arranque reflejando tus saldos reales y tu primer pago ya recibido,
    ve a Supabase → **SQL Editor**, abre
    [`supabase/seed_my_real_data.sql`](./supabase/seed_my_real_data.sql),
-   cópialo, pégalo y dale **Run**. Esto pone tu Chase Checking en $789.04,
-   tu Chase Savings en $625, y registra tu pago del 4 de septiembre de
-   $1,139.92.
+   confirma que el correo dentro del archivo (`target_email`) sea el mismo
+   con el que entraste, y dale **Run**. Esto pone tu Chase Checking en
+   $789.04, tu Chase Savings en $625, y registra tu pago del 4 de
+   septiembre de $1,139.92.
 4. Ve a **Categories** para ajustar cualquier monto o agregar lo que falte
    (por ejemplo, cuando confirmes el monto real de electricidad/wifi/agua).
    Todo lo que agregues o edites aquí — una categoría nueva, una
@@ -127,13 +128,34 @@ correo, y ya puedes usar la app desde cualquier lugar.
 
 ## Agregar el perfil de tu novio
 
-Como cada persona tiene su propio login (magic link con su correo), no
-necesitas crear nada especial: solo pídele que entre a la misma URL de
-Vercel con **su propio correo**. Supabase creará su cuenta automáticamente,
-verá la misma pantalla de bienvenida, y al hacer clic en "Load starter
-template" obtendrá exactamente la misma estructura de categorías que tú
-(basada en la tuya), completamente separada de tus datos — él la ajusta a
-sus números reales desde "Categories".
+Cada persona tiene su propio login (magic link con su correo), así que sus
+datos quedan 100% separados de los tuyos automáticamente. Pasos:
+
+1. Pídele que entre a la misma URL de Vercel con **su propio correo**.
+   Supabase le crea su cuenta al instante. Va a ver la pantalla de
+   bienvenida ("Load starter template") — **que no le dé clic todavía**.
+2. Ve a Supabase → **SQL Editor**, abre
+   [`supabase/seed_boyfriend_budget.sql`](./supabase/seed_boyfriend_budget.sql),
+   reemplaza `REPLACE_WITH_HIS_EMAIL@example.com` por el correo exacto con
+   el que él entró, y dale **Run**.
+3. Esto le crea la misma estructura de categorías que la tuya (Home,
+   Transportation, Daily Living, Personal, Savings/Investing, Travel,
+   Debt, Buffer) pero **en ceros**, para que él las llene con sus propios
+   montos desde "Categories" — excepto lo que ya nos diste con números
+   reales:
+   - Sus cuentas: **Arvest** (checking), **Ally** (savings), **2 tarjetas
+     Capital One** (con el saldo que debe en cada una — nombres genéricos
+     "Capital One Card 1/2" para que él las renombre desde Categories →
+     Accounts), **American Express** ($575.73), y **Robinhood**.
+   - Su deuda de **Student loans** ($25,950.39, pago mensual $155.19) —
+     ya aparece en Debts con su saldo y cuota; puede agregar la tasa de
+     interés real y a quién le debe (el servicer) desde "Edit details" en
+     esa misma pantalla, ya que no la teníamos.
+   - Su último pago (~$1,210 el 31 de agosto, quincenal) — está registrado
+     como aproximado; que lo corrija desde Income si no es el monto exacto.
+4. Si por accidente ya le dio clic a "Load starter template" antes del
+   paso 2, no pasa nada grave, pero verías categorías duplicadas — en ese
+   caso avísame y las limpiamos desde el SQL Editor antes de seguir.
 
 ---
 
@@ -155,6 +177,9 @@ sus números reales desde "Categories".
   función que carga la plantilla inicial de categorías.
 - `supabase/seed_my_real_data.sql` — opcional, solo para tu cuenta: tus
   saldos y primer pago reales.
+- `supabase/seed_boyfriend_budget.sql` — opcional, solo para la cuenta de
+  tu novio: crea su misma estructura de categorías en ceros, más sus
+  cuentas y deudas reales.
 - `src/app/` — páginas (Next.js App Router).
 - `src/lib/budget.ts` — toda la lógica de Planned vs Actual, saldos de
   deuda y resumen anual.
