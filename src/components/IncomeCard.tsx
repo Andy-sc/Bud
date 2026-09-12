@@ -50,7 +50,7 @@ export default function IncomeCard({
               type="submit"
               disabled={pending}
               onMouseDown={(e) => e.preventDefault()}
-              className="text-xs px-2 py-1 rounded-md bg-[var(--series-1)] text-white disabled:opacity-60"
+              className="text-xs px-2 py-1 rounded-md bg-[var(--accent)] text-[var(--accent-ink)] disabled:opacity-60"
             >
               OK
             </button>
@@ -58,7 +58,7 @@ export default function IncomeCard({
         ) : (
           <button
             onClick={() => setEditing(true)}
-            className="text-xs text-[var(--text-muted)] hover:text-[var(--series-1)] underline decoration-dotted underline-offset-2"
+            className="text-xs text-[var(--text-muted)] hover:text-[var(--accent)] underline decoration-dotted underline-offset-2"
           >
             edit goal: {money(planned)}
           </button>

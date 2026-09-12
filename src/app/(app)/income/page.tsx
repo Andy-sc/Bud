@@ -4,6 +4,7 @@ import { deleteIncome } from "@/lib/actions/income";
 import IncomeForm from "@/components/IncomeForm";
 import { money } from "@/lib/format";
 import type { Income } from "@/lib/database.types";
+import { CloseIcon } from "@/components/icons";
 
 export default async function IncomePage() {
   const supabase = await createClient();
@@ -61,7 +62,7 @@ export default async function IncomePage() {
                         className="text-[var(--text-muted)] hover:text-[var(--critical)] text-sm"
                         aria-label="Delete"
                       >
-                        ✕
+                        <CloseIcon className="w-4 h-4" />
                       </button>
                     </form>
                   </div>

@@ -4,6 +4,7 @@ import { deleteExpense } from "@/lib/actions/expenses";
 import ExpenseForm from "@/components/ExpenseForm";
 import { money } from "@/lib/format";
 import type { Expense } from "@/lib/database.types";
+import { CloseIcon } from "@/components/icons";
 
 export default async function ExpensesPage() {
   const supabase = await createClient();
@@ -66,7 +67,7 @@ export default async function ExpensesPage() {
                         className="text-[var(--text-muted)] hover:text-[var(--critical)] text-sm"
                         aria-label="Delete"
                       >
-                        ✕
+                        <CloseIcon className="w-4 h-4" />
                       </button>
                     </form>
                   </div>

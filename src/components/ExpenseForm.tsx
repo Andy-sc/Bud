@@ -137,7 +137,7 @@ export default function ExpenseForm({
       <button
         type="submit"
         disabled={pending}
-        className="control w-full py-2.5 font-medium text-white bg-[var(--series-1)] hover:opacity-90 disabled:opacity-60 transition"
+        className="control w-full py-2.5 font-medium text-[var(--accent-ink)] bg-[var(--accent)] hover:opacity-90 disabled:opacity-60 transition"
       >
         {pending ? "Saving..." : "Log expense"}
       </button>

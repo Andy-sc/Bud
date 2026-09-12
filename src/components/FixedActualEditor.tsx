@@ -24,7 +24,7 @@ export default function FixedActualEditor({
       <button
         type="button"
         onClick={() => setEditing(true)}
-        className="text-sm tabular-nums text-[var(--text-secondary)] hover:text-[var(--series-1)] underline decoration-dotted underline-offset-2"
+        className="text-sm tabular-nums text-[var(--text-secondary)] hover:text-[var(--accent)] underline decoration-dotted underline-offset-2"
         title="Edit actual amount"
       >
         {money(actual)}
@@ -57,7 +57,7 @@ export default function FixedActualEditor({
       <button
         type="submit"
         disabled={pending}
-        className="text-xs px-2 py-1 rounded-md bg-[var(--series-1)] text-white disabled:opacity-60"
+        className="text-xs px-2 py-1 rounded-md bg-[var(--accent)] text-[var(--accent-ink)] disabled:opacity-60"
         onMouseDown={(e) => e.preventDefault()}
       >
         OK

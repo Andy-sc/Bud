@@ -20,7 +20,7 @@ export default function DebtPaymentForm({
     return (
       <button
         onClick={() => setOpen(true)}
-        className="text-sm font-medium text-[var(--series-1)] hover:underline"
+        className="text-sm font-medium text-[var(--accent)] hover:underline"
       >
         Log a payment
       </button>
@@ -86,7 +86,7 @@ export default function DebtPaymentForm({
         <button
           type="submit"
           disabled={pending}
-          className="control px-3 py-1.5 text-xs font-medium text-white bg-[var(--good)] disabled:opacity-60"
+          className="control px-3 py-1.5 text-xs font-medium text-[var(--accent-ink)] bg-[var(--good)] disabled:opacity-60"
         >
           {pending ? "Saving..." : "Save payment"}
         </button>

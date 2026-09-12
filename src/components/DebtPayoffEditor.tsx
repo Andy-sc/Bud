@@ -4,6 +4,7 @@ import { useMemo, useState, useTransition } from "react";
 import { estimatePayoff } from "@/lib/budget";
 import { updateDebtPlannedPayment } from "@/lib/actions/debts";
 import { money } from "@/lib/format";
+import { CheckCircleIcon } from "@/components/icons";
 
 const MONTH_NAMES = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
@@ -55,7 +56,7 @@ export default function DebtPayoffEditor({
                   setSaved(true);
                 })
               }
-              className="text-xs px-2 py-1 rounded-md bg-[var(--series-1)] text-white disabled:opacity-60"
+              className="text-xs px-2 py-1 rounded-md bg-[var(--accent)] text-[var(--accent-ink)] disabled:opacity-60"
             >
               Save
             </button>
@@ -63,8 +64,13 @@ export default function DebtPayoffEditor({
         </span>
       </label>
 
-      <p className="text-xs text-[var(--text-muted)]">
-        {estimate.status === "paid-off" && "This debt is paid off. 🎉"}
+      <p className="text-xs text-[var(--text-muted)] flex items-center gap-1">
+        {estimate.status === "paid-off" && (
+          <>
+            <CheckCircleIcon className="w-3.5 h-3.5 text-[var(--good)]" />
+            This debt is paid off.
+          </>
+        )}
         {estimate.status === "no-payment" &&
           "Enter a monthly payment to see your payoff date."}
         {estimate.status === "payment-too-low" &&

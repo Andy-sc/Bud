@@ -85,7 +85,7 @@ export default function IncomeForm({ accounts }: { accounts: Account[] }) {
       <button
         type="submit"
         disabled={pending}
-        className="control w-full py-2.5 font-medium text-white bg-[var(--good)] hover:opacity-90 disabled:opacity-60 transition"
+        className="control w-full py-2.5 font-medium text-[var(--accent-ink)] bg-[var(--good)] hover:opacity-90 disabled:opacity-60 transition"
       >
         {pending ? "Saving..." : "Log income"}
       </button>

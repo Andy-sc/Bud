@@ -66,7 +66,7 @@ function CategoryRow({ category }: { category: CategoryWithSubs }) {
               onChange={(e) => setName(e.target.value)}
               className="control px-2 py-1 border border-[var(--border)] bg-[var(--surface)] text-sm font-semibold"
             />
-            <button type="submit" className="text-xs text-[var(--series-1)]">
+            <button type="submit" className="text-xs text-[var(--accent)]">
               Save
             </button>
             <button
@@ -80,7 +80,7 @@ function CategoryRow({ category }: { category: CategoryWithSubs }) {
         ) : (
           <button
             onClick={() => setEditingName(true)}
-            className="font-semibold text-[var(--text-primary)] hover:text-[var(--series-1)]"
+            className="font-semibold text-[var(--text-primary)] hover:text-[var(--accent)]"
           >
             {category.name}
           </button>
@@ -120,7 +120,7 @@ function CategoryRow({ category }: { category: CategoryWithSubs }) {
       ) : (
         <button
           onClick={() => setAddingSub(true)}
-          className="text-sm text-[var(--series-1)] hover:underline"
+          className="text-sm text-[var(--accent)] hover:underline"
         >
           + Add subcategory
         </button>
@@ -181,7 +181,7 @@ function SubcategoryRow({ sub }: { sub: Subcategory }) {
             onChange={(e) => setAmount(e.target.value)}
             className="control w-24 px-2 py-1 border border-[var(--border)] bg-[var(--surface)] text-sm"
           />
-          <button type="submit" disabled={pending} className="text-xs text-[var(--series-1)]">
+          <button type="submit" disabled={pending} className="text-xs text-[var(--accent)]">
             Save
           </button>
           <button
@@ -201,7 +201,7 @@ function SubcategoryRow({ sub }: { sub: Subcategory }) {
     <li className="flex items-center justify-between gap-2 text-sm border-t border-[var(--border)] pt-2 first:border-0 first:pt-0">
       <button
         onClick={() => setEditing(true)}
-        className="text-left text-[var(--text-primary)] hover:text-[var(--series-1)]"
+        className="text-left text-[var(--text-primary)] hover:text-[var(--accent)]"
       >
         {sub.name}
         <span className="block text-xs text-[var(--text-muted)]">
@@ -280,7 +280,7 @@ function NewSubcategoryForm({
       <button
         type="submit"
         disabled={pending}
-        className="control px-3 py-1.5 text-sm font-medium text-white bg-[var(--series-1)] disabled:opacity-60"
+        className="control px-3 py-1.5 text-sm font-medium text-[var(--accent-ink)] bg-[var(--accent)] disabled:opacity-60"
       >
         Add
       </button>
@@ -336,7 +336,7 @@ function NewCategoryForm() {
       <button
         type="submit"
         disabled={pending}
-        className="control px-4 py-2 text-sm font-medium text-white bg-[var(--series-1)] disabled:opacity-60"
+        className="control px-4 py-2 text-sm font-medium text-[var(--accent-ink)] bg-[var(--accent)] disabled:opacity-60"
       >
         Add
       </button>

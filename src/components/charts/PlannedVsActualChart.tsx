@@ -18,10 +18,10 @@ interface Datum {
   pctUsed: number;
 }
 
-function statusHex(pctUsed: number) {
-  if (pctUsed > 1) return "#d03b3b";
-  if (pctUsed >= 0.85) return "#fab219";
-  return "#0ca30c";
+function statusColor(pctUsed: number) {
+  if (pctUsed > 1) return "var(--critical)";
+  if (pctUsed >= 0.85) return "var(--warning)";
+  return "var(--good)";
 }
 
 export default function PlannedVsActualChart({ data }: { data: Datum[] }) {
@@ -31,8 +31,8 @@ export default function PlannedVsActualChart({ data }: { data: Datum[] }) {
         <BarChart data={data} margin={{ top: 8, right: 8, left: 0, bottom: 8 }}>
           <XAxis
             dataKey="name"
-            tick={{ fontSize: 11, fill: "#898781" }}
-            axisLine={{ stroke: "#e1e0d9" }}
+            tick={{ fontSize: 11, fill: "var(--text-muted)" }}
+            axisLine={{ stroke: "var(--gridline)" }}
             tickLine={false}
             interval={0}
             angle={-20}
@@ -40,39 +40,41 @@ export default function PlannedVsActualChart({ data }: { data: Datum[] }) {
             height={56}
           />
           <YAxis
-            tick={{ fontSize: 11, fill: "#898781" }}
+            tick={{ fontSize: 11, fill: "var(--text-muted)" }}
             axisLine={false}
             tickLine={false}
             width={56}
           />
           <Tooltip
-            cursor={{ fill: "rgba(11,11,11,0.04)" }}
+            cursor={{ fill: "color-mix(in srgb, var(--text-primary) 6%, transparent)" }}
             formatter={(value) => money(Number(value))}
             contentStyle={{
+              background: "var(--surface)",
               borderRadius: 10,
-              border: "1px solid #e1e0d9",
+              border: "1px solid var(--border)",
               fontSize: 12,
+              color: "var(--text-primary)",
             }}
           />
-          <Bar dataKey="planned" name="Planned" fill="#c3c2b7" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="planned" name="Planned" fill="var(--planned-bar)" radius={[4, 4, 0, 0]} />
           <Bar dataKey="actual" name="Actual" radius={[4, 4, 0, 0]}>
             {data.map((d, i) => (
-              <Cell key={i} fill={statusHex(d.pctUsed)} />
+              <Cell key={i} fill={statusColor(d.pctUsed)} />
             ))}
           </Bar>
         </BarChart>
       </ResponsiveContainer>
       <div className="flex items-center gap-4 justify-center mt-2 text-xs text-[var(--text-secondary)]">
         <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: "#c3c2b7" }} />
+          <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: "var(--planned-bar)" }} />
           Planned
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: "#0ca30c" }} />
+          <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: "var(--good)" }} />
           Actual (on track)
         </span>
         <span className="flex items-center gap-1.5">
-          <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: "#d03b3b" }} />
+          <span className="w-2.5 h-2.5 rounded-sm inline-block" style={{ background: "var(--critical)" }} />
           Actual (over budget)
         </span>
       </div>

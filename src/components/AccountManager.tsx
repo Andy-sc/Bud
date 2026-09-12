@@ -46,7 +46,7 @@ function AccountRow({ account }: { account: Account }) {
             onChange={(e) => setName(e.target.value)}
             className="control px-2 py-1 border border-[var(--border)] bg-[var(--surface)] text-sm flex-1"
           />
-          <button type="submit" className="text-xs text-[var(--series-1)]">
+          <button type="submit" className="text-xs text-[var(--accent)]">
             Save
           </button>
           <button
@@ -66,7 +66,7 @@ function AccountRow({ account }: { account: Account }) {
     <li className="flex items-center justify-between text-sm border-t border-[var(--border)] pt-2 first:border-0 first:pt-0">
       <button
         onClick={() => setEditing(true)}
-        className="text-[var(--text-primary)] hover:text-[var(--series-1)]"
+        className="text-[var(--text-primary)] hover:text-[var(--accent)]"
       >
         {account.name}
       </button>
@@ -99,7 +99,7 @@ function NewAccountForm() {
     return (
       <button
         onClick={() => setOpen(true)}
-        className="text-sm text-[var(--series-1)] hover:underline"
+        className="text-sm text-[var(--accent)] hover:underline"
       >
         + Add account
       </button>
@@ -133,7 +133,7 @@ function NewAccountForm() {
       <button
         type="submit"
         disabled={pending}
-        className="control px-4 py-2 text-sm font-medium text-white bg-[var(--series-1)] disabled:opacity-60"
+        className="control px-4 py-2 text-sm font-medium text-[var(--accent-ink)] bg-[var(--accent)] disabled:opacity-60"
       >
         Add
       </button>

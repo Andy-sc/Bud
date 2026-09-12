@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { seedStarterBudget } from "@/app/(app)/actions";
+import { LogoMark } from "@/components/icons";
 
 export default function Onboarding() {
   const [pending, startTransition] = useTransition();
@@ -10,7 +11,7 @@ export default function Onboarding() {
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="card max-w-md w-full p-8 text-center space-y-4">
-        <div className="text-4xl">🌱</div>
+        <LogoMark className="w-10 h-10 mx-auto" />
         <h1 className="text-lg font-semibold text-[var(--text-primary)]">
           Welcome to your budget!
         </h1>
@@ -32,7 +33,7 @@ export default function Onboarding() {
               }
             })
           }
-          className="control w-full py-3 font-medium text-white bg-[var(--series-1)] hover:opacity-90 disabled:opacity-60 transition"
+          className="control w-full py-3 font-medium text-[var(--accent-ink)] bg-[var(--accent)] hover:opacity-90 disabled:opacity-60 transition"
         >
           {pending ? "Loading..." : "Load starter template"}
         </button>

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { monthLabel, shiftMonth } from "@/lib/date";
+import { ChevronLeftIcon, ChevronRightIcon } from "@/components/icons";
 
 export default function MonthNav({
   year,
@@ -20,7 +21,7 @@ export default function MonthNav({
         className="control w-10 h-10 flex items-center justify-center border border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)] hover:bg-[var(--surface-2)] transition"
         aria-label="Previous month"
       >
-        ←
+        <ChevronLeftIcon className="w-4 h-4" />
       </Link>
       <h2 className="text-lg font-semibold text-[var(--text-primary)] tabular-nums">
         {monthLabel(year, month)}
@@ -30,7 +31,7 @@ export default function MonthNav({
         className="control w-10 h-10 flex items-center justify-center border border-[var(--border)] bg-[var(--surface)] text-[var(--text-secondary)] hover:bg-[var(--surface-2)] transition"
         aria-label="Next month"
       >
-        →
+        <ChevronRightIcon className="w-4 h-4" />
       </Link>
     </div>
   );

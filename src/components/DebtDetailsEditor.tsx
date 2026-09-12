@@ -25,7 +25,7 @@ export default function DebtDetailsEditor({
       <button
         type="button"
         onClick={() => setEditing(true)}
-        className="text-xs text-[var(--text-muted)] hover:text-[var(--series-1)]"
+        className="text-xs text-[var(--text-muted)] hover:text-[var(--accent)]"
       >
         Edit details
       </button>
@@ -79,7 +79,7 @@ export default function DebtDetailsEditor({
         <button
           type="submit"
           disabled={pending}
-          className="text-xs px-3 py-1.5 rounded-md bg-[var(--series-1)] text-white disabled:opacity-60"
+          className="text-xs px-3 py-1.5 rounded-md bg-[var(--accent)] text-[var(--accent-ink)] disabled:opacity-60"
         >
           Save
         </button>

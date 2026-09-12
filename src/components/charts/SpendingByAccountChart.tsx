@@ -4,7 +4,16 @@ import { Bar, BarChart, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis } from 
 import { money } from "@/lib/format";
 
 const ACCOUNT_ORDER = ["Chase Checking", "Chase Savings", "Chase Credit", "Vanguard", "Venmo"];
-const SERIES = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948"];
+const SERIES = [
+  "var(--series-1)",
+  "var(--series-2)",
+  "var(--series-3)",
+  "var(--series-4)",
+  "var(--series-5)",
+  "var(--series-6)",
+  "var(--series-7)",
+  "var(--series-8)",
+];
 
 function colorFor(name: string) {
   const idx = ACCOUNT_ORDER.indexOf(name);
@@ -35,19 +44,25 @@ export default function SpendingByAccountChart({
           layout="vertical"
           margin={{ top: 8, right: 24, left: 8, bottom: 8 }}
         >
-          <XAxis type="number" tick={{ fontSize: 11, fill: "#898781" }} axisLine={false} tickLine={false} />
+          <XAxis type="number" tick={{ fontSize: 11, fill: "var(--text-muted)" }} axisLine={false} tickLine={false} />
           <YAxis
             type="category"
             dataKey="accountName"
-            tick={{ fontSize: 12, fill: "#52514e" }}
+            tick={{ fontSize: 12, fill: "var(--text-secondary)" }}
             axisLine={false}
             tickLine={false}
             width={110}
           />
           <Tooltip
-            cursor={{ fill: "rgba(11,11,11,0.04)" }}
+            cursor={{ fill: "color-mix(in srgb, var(--text-primary) 6%, transparent)" }}
             formatter={(value) => money(Number(value))}
-            contentStyle={{ borderRadius: 10, border: "1px solid #e1e0d9", fontSize: 12 }}
+            contentStyle={{
+              background: "var(--surface)",
+              borderRadius: 10,
+              border: "1px solid var(--border)",
+              fontSize: 12,
+              color: "var(--text-primary)",
+            }}
           />
           <Bar dataKey="amount" radius={[0, 4, 4, 0]}>
             {data.map((d, i) => (

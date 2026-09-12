@@ -61,7 +61,7 @@ export default function AddDebtForm() {
         <button
           type="submit"
           disabled={pending}
-          className="control px-4 py-2 text-sm font-medium text-white bg-[var(--series-1)] hover:opacity-90 disabled:opacity-60"
+          className="control px-4 py-2 text-sm font-medium text-[var(--accent-ink)] bg-[var(--accent)] hover:opacity-90 disabled:opacity-60"
         >
           {pending ? "Saving..." : "Save debt"}
         </button>
