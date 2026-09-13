@@ -111,6 +111,13 @@ export interface UserSettings {
   display_name: string | null;
 }
 
+export interface Profile {
+  id: string;
+  name: string;
+  email: string;
+  created_at: string;
+}
+
 // Minimal Database type so @supabase/ssr's generics are satisfied.
 // (Not a full generated schema — good enough since we type query results ourselves.)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

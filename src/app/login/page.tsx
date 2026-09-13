@@ -1,7 +1,14 @@
 import LoginForm from "./LoginForm";
 import { LogoMark } from "@/components/icons";
+import { createClient } from "@/lib/supabase/server";
 
-export default function LoginPage() {
+export default async function LoginPage() {
+  const supabase = await createClient();
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, name, email")
+    .order("created_at", { ascending: true });
+
   return (
     <div className="min-h-screen flex items-center justify-center px-4">
       <div className="card w-full max-w-sm p-8 shadow-sm">
@@ -14,7 +21,7 @@ export default function LoginPage() {
             Choose your profile and enter your PIN.
           </p>
         </div>
-        <LoginForm />
+        <LoginForm profiles={profiles ?? []} />
       </div>
     </div>
   );

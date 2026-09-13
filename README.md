@@ -25,9 +25,10 @@ español solo porque así hablamos — es la guía para ti, no parte de la app.
   Checking, Chase Savings, Chase Credit, Vanguard, Venmo).
 - **Administrar categorías**: agrega, edita o elimina categorías,
   subcategorías y cuentas sin tocar código.
-- **Un perfil por persona con PIN** — en la pantalla de entrada eliges tu
-  nombre (Vale o Jose) y pones tu PIN; cada quien tiene su presupuesto
-  100% separado en la misma app, sin usar correos ni contraseñas.
+- **Un perfil por persona con PIN** — en la pantalla de entrada cada quien
+  crea su propio perfil (nombre + PIN, sin correos ni contraseñas) con
+  "+ Add profile" la primera vez, y después solo elige su nombre de la
+  lista; cada quien tiene su presupuesto 100% separado en la misma app.
 
 Construida con Next.js (React) + Supabase (base de datos y autenticación) +
 Vercel (hosting). Ambos servicios tienen un plan gratuito que no requiere
@@ -71,10 +72,10 @@ cp .env.local.example .env.local
 npm run dev
 ```
 
-Abre `http://localhost:3000`, elige tu perfil ("Vale"), pon el PIN que
-quieras usar (la primera vez que lo escribes, ese PIN queda guardado como
-el tuyo), y haz clic en **"Load starter template"**. La app está en
-inglés — estas instrucciones están en español solo para guiarte a ti.
+Abre `http://localhost:3000`, dale clic a **"+ Add profile"**, escribe tu
+nombre ("Vale") y el PIN que quieras usar de ahora en adelante, y haz clic
+en **"Load starter template"**. La app está en inglés — estas
+instrucciones están en español solo para guiarte a ti.
 
 ## Paso 3 — Desplegar en Vercel (hosting)
 
@@ -95,9 +96,10 @@ tu perfil, y ya puedes usar la app desde cualquier lugar.
 
 ## Paso 4 — Cargar tu presupuesto
 
-1. La primera vez que entres, elige tu perfil ("Vale"), pon el PIN que
-   quieras usar de ahora en adelante, y verás la pantalla de bienvenida —
-   haz clic en **"Load starter template"**. Esto crea las categorías,
+1. La primera vez que entres, dale clic a **"+ Add profile"**, escribe tu
+   nombre ("Vale") y el PIN que quieras usar de ahora en adelante, y
+   verás la pantalla de bienvenida — haz clic en **"Load starter
+   template"**. Esto crea las categorías,
    subcategorías, cuentas y la deuda "Hermana" con los montos que ya
    definiste (rent $1,130, car insurance $137.94, etc.).
 2. Tu **préstamo del carro (car loan)** no se precarga — necesita el saldo
@@ -122,14 +124,14 @@ tu perfil, y ya puedes usar la app desde cualquier lugar.
 
 ## Agregar el perfil de Jose
 
-Cada quien elige su nombre y su propio PIN en la pantalla de entrada, así
-que sus datos quedan 100% separados de los tuyos automáticamente. Pasos:
+Cada quien crea su propio nombre y PIN en la pantalla de entrada con
+"+ Add profile", así que sus datos quedan 100% separados de los tuyos
+automáticamente. Pasos:
 
-1. Pídele a Jose que entre a la misma URL de Vercel, elija **"Jose"** en
-   la pantalla de entrada, y ponga el PIN que quiera usar de ahora en
-   adelante (queda guardado como suyo desde la primera vez que lo escribe).
-   Va a ver la pantalla de bienvenida ("Load starter template") — **que no
-   le dé clic todavía**.
+1. Pídele a Jose que entre a la misma URL de Vercel, dele clic a **"+ Add
+   profile"**, escriba **"Jose"** como nombre, y ponga el PIN que quiera
+   usar de ahora en adelante. Va a ver la pantalla de bienvenida ("Load
+   starter template") — **que no le dé clic todavía**.
 2. Ve a Supabase → **SQL Editor**, abre
    [`supabase/seed_jose_budget.sql`](./supabase/seed_jose_budget.sql), y
    dale **Run** tal cual está (no hay que editar ningún correo — su perfil
@@ -152,6 +154,11 @@ que sus datos quedan 100% separados de los tuyos automáticamente. Pasos:
 4. Si por accidente ya le dio clic a "Load starter template" antes del
    paso 2, no pasa nada grave, pero verías categorías duplicadas — en ese
    caso avísame y las limpiamos desde el SQL Editor antes de seguir.
+
+Si más adelante quieres agregar a alguien más, no necesitas tocar nada
+de código: esa persona solo entra a la misma URL y crea su propio perfil
+con "+ Add profile" — queda con su propio presupuesto en blanco,
+completamente separado del tuyo y del de Jose.
 
 ---
 

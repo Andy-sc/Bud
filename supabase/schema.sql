@@ -119,6 +119,18 @@ create table if not exists public.user_settings (
   display_name text
 );
 
+-- One row per login profile shown on the login screen ("Vale", "Jose",
+-- anyone else who self-adds one later). id is the same as the matching
+-- auth.users id — the PIN is that account's password. email is an
+-- internal, never-emailed address (a random id @bud.internal) generated
+-- when the profile is created; it's only ever used to sign in.
+create table if not exists public.profiles (
+  id uuid primary key references auth.users(id) on delete cascade,
+  name text not null,
+  email text not null,
+  created_at timestamptz not null default now()
+);
+
 -- ============================================================================
 -- INDEXES
 -- ============================================================================
@@ -145,6 +157,7 @@ alter table public.income enable row level security;
 alter table public.income_plan enable row level security;
 alter table public.debt_payments enable row level security;
 alter table public.user_settings enable row level security;
+alter table public.profiles enable row level security;
 
 do $$
 declare
@@ -166,6 +179,19 @@ end $$;
 drop policy if exists "owner_all" on public.user_settings;
 create policy "owner_all" on public.user_settings
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- Profiles are readable by anyone (even signed-out visitors need to see
+-- the list of names on the login screen), but a profile can only ever be
+-- created by the account it belongs to (right after that account signs
+-- up), and never edited or deleted through the API.
+drop policy if exists "profiles_read_all" on public.profiles;
+create policy "profiles_read_all" on public.profiles for select using (true);
+
+drop policy if exists "profiles_insert_own" on public.profiles;
+create policy "profiles_insert_own" on public.profiles for insert with check (auth.uid() = id);
+
+grant select on public.profiles to anon, authenticated;
+grant insert on public.profiles to authenticated;
 
 -- ============================================================================
 -- STARTER TEMPLATE — mirrors the structure of the original My_Budget.xlsx
@@ -281,3 +307,18 @@ end;
 $$;
 
 grant execute on function public.seed_starter_budget() to authenticated;
+
+-- ============================================================================
+-- MIGRATION — backfills profile rows for the two accounts created before the
+-- self-service "+ Add profile" flow existed (Vale and Jose both originally
+-- signed in via fixed internal addresses). No-ops if those accounts don't
+-- exist (e.g. a brand-new project) or already have a profile row.
+-- ============================================================================
+
+insert into public.profiles (id, name, email)
+select id, 'Vale', email from auth.users where email = 'vale@bud.internal'
+on conflict (id) do nothing;
+
+insert into public.profiles (id, name, email)
+select id, 'Jose', email from auth.users where email = 'jose@bud.internal'
+on conflict (id) do nothing;
