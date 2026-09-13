@@ -122,9 +122,10 @@ begin
   insert into public.subcategories (user_id, category_id, name, type, planned_amount, debt_id, sort_order) values
     (uid, cat_debt, 'Student loans', 'debt', 155.19, debt_student, 1);
 
-  -- Subcategories: Buffer
-  insert into public.subcategories (user_id, category_id, name, type, planned_amount, sort_order) values
-    (uid, cat_buffer, 'Buffer/extra cushion', 'variable', 0, 1);
+  -- Subcategories: Buffer — is_buffer=true means each month's leftover
+  -- from every other non-debt subcategory automatically adds to this one.
+  insert into public.subcategories (user_id, category_id, name, type, planned_amount, sort_order, is_buffer) values
+    (uid, cat_buffer, 'Buffer/extra cushion', 'variable', 0, 1, true);
 
   -- His last known paycheck (biweekly, ~$1,210 — approximate, correct the
   -- exact amount from Income if it's off once he checks his stub).

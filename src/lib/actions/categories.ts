@@ -56,7 +56,8 @@ export async function addSubcategory(
   name: string,
   type: SubcategoryType,
   plannedAmount: number,
-  dueDay: number | null = null
+  dueDay: number | null = null,
+  isBuffer = false
 ) {
   const { supabase, userId } = await currentUserId();
   const { data, error } = await supabase
@@ -69,6 +70,7 @@ export async function addSubcategory(
       planned_amount: plannedAmount,
       sort_order: 0,
       due_day: type === "fixed" ? dueDay : null,
+      is_buffer: isBuffer,
     })
     .select()
     .single();
@@ -83,12 +85,13 @@ export async function updateSubcategory(
   id: string,
   name: string,
   plannedAmount: number,
-  dueDay: number | null = null
+  dueDay: number | null = null,
+  isBuffer = false
 ) {
   const { supabase } = await currentUserId();
   const { error } = await supabase
     .from("subcategories")
-    .update({ name, planned_amount: plannedAmount, due_day: dueDay })
+    .update({ name, planned_amount: plannedAmount, due_day: dueDay, is_buffer: isBuffer })
     .eq("id", id);
   if (error) throw new Error(error.message);
   revalidatePath("/settings");

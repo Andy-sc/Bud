@@ -47,6 +47,7 @@ export interface Subcategory {
   sort_order: number;
   created_at: string;
   due_day: number | null;
+  is_buffer: boolean;
 }
 
 export interface MonthlyOverride {

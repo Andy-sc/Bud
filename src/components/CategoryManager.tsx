@@ -134,6 +134,7 @@ function SubcategoryRow({ sub }: { sub: Subcategory }) {
   const [name, setName] = useState(sub.name);
   const [amount, setAmount] = useState(String(sub.planned_amount));
   const [dueDay, setDueDay] = useState(String(sub.due_day ?? ""));
+  const [isBuffer, setIsBuffer] = useState(sub.is_buffer);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -166,7 +167,8 @@ function SubcategoryRow({ sub }: { sub: Subcategory }) {
                   sub.id,
                   name,
                   parseFloat(amount) || 0,
-                  sub.type === "fixed" && dueDay ? parseInt(dueDay, 10) : null
+                  sub.type === "fixed" && dueDay ? parseInt(dueDay, 10) : null,
+                  isBuffer
                 );
                 setEditing(false);
               } catch (err) {
@@ -199,6 +201,15 @@ function SubcategoryRow({ sub }: { sub: Subcategory }) {
               className="control w-20 px-2 py-1 border border-[var(--border)] bg-[var(--surface)] text-sm"
             />
           )}
+          <label className="flex items-center gap-1.5 text-xs text-[var(--text-secondary)]">
+            <input
+              type="checkbox"
+              checked={isBuffer}
+              onChange={(e) => setIsBuffer(e.target.checked)}
+              className="accent-[var(--accent)]"
+            />
+            Send monthly leftover here
+          </label>
           <button type="submit" disabled={pending} className="text-xs text-[var(--accent)]">
             Save
           </button>
@@ -225,6 +236,7 @@ function SubcategoryRow({ sub }: { sub: Subcategory }) {
         <span className="block text-xs text-[var(--text-muted)]">
           {TYPE_LABEL[sub.type]} · plan {money(sub.planned_amount)}
           {sub.type === "fixed" && sub.due_day ? ` · due day ${sub.due_day}` : ""}
+          {sub.is_buffer ? " · gets monthly leftover" : ""}
         </span>
       </button>
       <button

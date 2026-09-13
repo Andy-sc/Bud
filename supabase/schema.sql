@@ -56,10 +56,20 @@ create table if not exists public.subcategories (
   -- Day of month this Fixed bill is due (1-31), used by the weekly/calendar
   -- cash-flow view. Null means "no set due date" — it just won't show up
   -- on the calendar.
-  due_day int check (due_day between 1 and 31)
+  due_day int check (due_day between 1 and 31),
+  -- Marks this as the "cushion" subcategory: each month, whatever was left
+  -- unspent last month across every other non-debt subcategory gets added
+  -- to THIS subcategory's planned amount (never to the original category).
+  is_buffer boolean not null default false
 );
 
 alter table public.subcategories add column if not exists due_day int check (due_day between 1 and 31);
+alter table public.subcategories add column if not exists is_buffer boolean not null default false;
+
+-- Backfill: flag the starter template's cushion subcategory for existing
+-- accounts that were seeded before is_buffer existed.
+update public.subcategories set is_buffer = true
+  where name = 'Buffer/extra cushion' and is_buffer = false;
 
 create table if not exists public.monthly_overrides (
   id uuid primary key default gen_random_uuid(),
@@ -326,9 +336,10 @@ begin
   insert into public.subcategories (user_id, category_id, name, type, planned_amount, debt_id, sort_order) values
     (uid, cat_debt, 'Hermana', 'debt', 150, debt_hermana, 1);
 
-  -- Subcategories: Buffer
-  insert into public.subcategories (user_id, category_id, name, type, planned_amount, sort_order) values
-    (uid, cat_buffer, 'Buffer/extra cushion', 'variable', 110, 1);
+  -- Subcategories: Buffer — is_buffer=true means each month's leftover
+  -- from every other non-debt subcategory automatically adds to this one.
+  insert into public.subcategories (user_id, category_id, name, type, planned_amount, sort_order, is_buffer) values
+    (uid, cat_buffer, 'Buffer/extra cushion', 'variable', 110, 1, true);
 
   -- Default monthly income target
   insert into public.user_settings (user_id, default_income_planned)

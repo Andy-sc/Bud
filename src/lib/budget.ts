@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { monthRange } from "@/lib/date";
+import { monthRange, shiftMonth } from "@/lib/date";
 import type {
   Account,
   AccountType,
@@ -85,8 +85,10 @@ export async function getMonthBudget(
   supabase: SupabaseClient,
   userId: string,
   year: number,
-  month: number
+  month: number,
+  options: { includeRollover?: boolean } = {}
 ): Promise<MonthBudget> {
+  const includeRollover = options.includeRollover ?? true;
   const { start, end } = monthRange(year, month);
 
   const [
@@ -216,6 +218,31 @@ export async function getMonthBudget(
       pctUsed: pct(actual, planned),
     };
   });
+
+  if (includeRollover) {
+    const prev = shiftMonth(year, month, -1);
+    const prevBudget = await getMonthBudget(supabase, userId, prev.year, prev.month, {
+      includeRollover: false,
+    });
+    const leftover = prevBudget.categories
+      .flatMap((c) => c.subcategories)
+      .filter((s) => s.type !== "debt")
+      .reduce((sum, s) => sum + Math.max(s.planned - s.actual, 0), 0);
+
+    if (leftover > 0) {
+      for (const cat of categories) {
+        const bufferSub = cat.subcategories.find((s) => s.is_buffer);
+        if (!bufferSub) continue;
+        bufferSub.planned += leftover;
+        bufferSub.diff = bufferSub.planned - bufferSub.actual;
+        bufferSub.pctUsed = pct(bufferSub.actual, bufferSub.planned);
+        cat.planned += leftover;
+        cat.diff = cat.planned - cat.actual;
+        cat.pctUsed = pct(cat.actual, cat.planned);
+        break;
+      }
+    }
+  }
 
   const expensesPlanned = categories.reduce((s, c) => s + c.planned, 0);
   const expensesActual = categories.reduce((s, c) => s + c.actual, 0);
