@@ -3,6 +3,7 @@ import { getMonthBudget, getSpendingByAccount, getYearSummary } from "@/lib/budg
 import { currentYearMonth } from "@/lib/date";
 import MonthNav from "@/components/MonthNav";
 import YearSummary from "@/components/YearSummary";
+import BudgetRemainingBanner from "@/components/BudgetRemainingBanner";
 import IncomeCard from "@/components/IncomeCard";
 import CategoryCard from "@/components/CategoryCard";
 import PlannedVsActualChart from "@/components/charts/PlannedVsActualChart";
@@ -42,6 +43,11 @@ export default async function DashboardPage({
 
   return (
     <div className="space-y-6">
+      <BudgetRemainingBanner
+        expensesPlanned={budget.expensesPlanned}
+        expensesActual={budget.expensesActual}
+      />
+
       <YearSummary data={yearSummary} />
 
       <div className="card p-4 md:p-5">
@@ -95,7 +101,13 @@ export default async function DashboardPage({
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         {budget.categories.map((cat) => (
-          <CategoryCard key={cat.id} category={cat} year={year} month={month} />
+          <CategoryCard
+            key={cat.id}
+            category={cat}
+            year={year}
+            month={month}
+            incomePlanned={budget.incomePlanned}
+          />
         ))}
       </div>
     </div>

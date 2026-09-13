@@ -14,12 +14,15 @@ export default function CategoryCard({
   category,
   year,
   month,
+  incomePlanned,
 }: {
   category: CategoryComputed;
   year: number;
   month: number;
+  incomePlanned: number;
 }) {
   const color = categoryColorVar(category.name);
+  const shareOfIncome = incomePlanned > 0 ? category.planned / incomePlanned : 0;
 
   return (
     <div className="card p-5 space-y-4">
@@ -32,6 +35,9 @@ export default function CategoryCard({
           <h3 className="font-semibold text-[var(--text-primary)]">
             {category.name}
           </h3>
+          <span className="text-xs text-[var(--text-muted)] tabular-nums">
+            {pct(shareOfIncome)} of income
+          </span>
         </div>
         <span className="text-xs font-medium text-[var(--text-muted)] tabular-nums">
           {pct(category.pctUsed)}
