@@ -1,5 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
-import { getMonthBudget, getSpendingByAccount, getYearSummary } from "@/lib/budget";
+import {
+  getMonthBudget,
+  getMonthCashFlow,
+  getSpendingByAccount,
+  getYearSummary,
+} from "@/lib/budget";
 import { currentYearMonth } from "@/lib/date";
 import MonthNav from "@/components/MonthNav";
 import YearSummary from "@/components/YearSummary";
@@ -8,6 +13,7 @@ import IncomeCard from "@/components/IncomeCard";
 import CategoryCard from "@/components/CategoryCard";
 import PlannedVsActualChart from "@/components/charts/PlannedVsActualChart";
 import SpendingByAccountChart from "@/components/charts/SpendingByAccountChart";
+import CashFlowSection from "@/components/CashFlowSection";
 import { money } from "@/lib/format";
 
 export default async function DashboardPage({
@@ -26,10 +32,11 @@ export default async function DashboardPage({
   } = await supabase.auth.getUser();
   const userId = user!.id;
 
-  const [budget, yearSummary, accountSpending] = await Promise.all([
+  const [budget, yearSummary, accountSpending, cashFlow] = await Promise.all([
     getMonthBudget(supabase, userId, year, month),
     getYearSummary(supabase, userId, year),
     getSpendingByAccount(supabase, userId, year, month),
+    getMonthCashFlow(supabase, userId, year, month),
   ]);
 
   const chartData = budget.categories.map((c) => ({
@@ -83,6 +90,8 @@ export default async function DashboardPage({
           </p>
         </div>
       </div>
+
+      <CashFlowSection data={cashFlow} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="card p-5">

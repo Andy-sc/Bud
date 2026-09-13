@@ -96,8 +96,17 @@ create table if not exists public.income (
   source text,
   account_id uuid references public.accounts(id) on delete set null,
   note text,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  -- When true, this entry represents a recurring paycheck/deposit — used
+  -- to project future expected income onto the weekly cash-flow view.
+  -- The most recent recurring row for a given `source` is treated as the
+  -- current pattern (amount + interval) going forward.
+  is_recurring boolean not null default false,
+  recurrence_interval text check (recurrence_interval in ('weekly', 'biweekly', 'monthly'))
 );
+
+alter table public.income add column if not exists is_recurring boolean not null default false;
+alter table public.income add column if not exists recurrence_interval text check (recurrence_interval in ('weekly', 'biweekly', 'monthly'));
 
 create table if not exists public.income_plan (
   id uuid primary key default gen_random_uuid(),

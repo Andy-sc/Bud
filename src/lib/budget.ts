@@ -4,6 +4,7 @@ import type {
   Account,
   Category,
   Debt,
+  Income,
   Subcategory,
 } from "@/lib/database.types";
 
@@ -440,4 +441,221 @@ export async function getSpendingByAccount(
     accountName: key === "no-account" ? "No account" : nameById.get(key) ?? "?",
     amount,
   }));
+}
+
+export interface CashFlowIncomeEvent {
+  amount: number;
+  source: string;
+  actual: boolean; // false = projected from a recurring pattern, not yet logged
+}
+
+export interface CashFlowBillEvent {
+  name: string;
+  categoryName: string;
+  amount: number;
+}
+
+export interface CashFlowDay {
+  day: number;
+  date: string;
+  income: CashFlowIncomeEvent[];
+  bills: CashFlowBillEvent[];
+}
+
+export interface CashFlowWeek {
+  label: string;
+  startDay: number;
+  endDay: number;
+  incomeActual: number;
+  incomeProjected: number;
+  bills: (CashFlowBillEvent & { day: number })[];
+  billsTotal: number;
+  freeToSpend: number;
+}
+
+export interface MonthCashFlow {
+  year: number;
+  month: number;
+  days: CashFlowDay[];
+  weeks: CashFlowWeek[];
+}
+
+function daysInMonth(year: number, month: number) {
+  return new Date(year, month, 0).getDate();
+}
+
+function addDays(date: Date, n: number) {
+  const d = new Date(date);
+  d.setDate(d.getDate() + n);
+  return d;
+}
+
+function addOneMonth(date: Date) {
+  const d = new Date(date);
+  d.setMonth(d.getMonth() + 1);
+  return d;
+}
+
+function toISODate(d: Date) {
+  return d.toISOString().slice(0, 10);
+}
+
+/**
+ * Projects future occurrences of recurring income into [rangeStart, rangeEnd)
+ * using the most recent recurring entry per `source` as the pattern (its
+ * amount + interval), stepping forward from its date. Skips any projected
+ * date that already has a matching actual entry (same source + date) so a
+ * paycheck already logged isn't double-counted as also "expected".
+ */
+function projectRecurringIncome(
+  recurringRows: Income[],
+  actualDatesBySource: Set<string>,
+  rangeStart: Date,
+  rangeEnd: Date
+): { date: string; amount: number; source: string }[] {
+  const latestBySource = new Map<string, Income>();
+  for (const row of recurringRows) {
+    const key = row.source ?? "Income";
+    const existing = latestBySource.get(key);
+    if (!existing || row.date > existing.date) latestBySource.set(key, row);
+  }
+
+  const projections: { date: string; amount: number; source: string }[] = [];
+
+  for (const [source, anchor] of latestBySource) {
+    if (!anchor.recurrence_interval) continue;
+    let date = new Date(`${anchor.date}T00:00:00`);
+    // Step forward until we're past the end of the range, collecting any
+    // occurrence that lands inside [rangeStart, rangeEnd).
+    // Cap iterations defensively so a bad interval can't loop forever.
+    for (let i = 0; i < 400; i++) {
+      date =
+        anchor.recurrence_interval === "weekly"
+          ? addDays(date, 7)
+          : anchor.recurrence_interval === "biweekly"
+            ? addDays(date, 14)
+            : addOneMonth(date);
+      if (date >= rangeEnd) break;
+      if (date >= rangeStart) {
+        const iso = toISODate(date);
+        if (!actualDatesBySource.has(`${source}|${iso}`)) {
+          projections.push({ date: iso, amount: Number(anchor.amount), source });
+        }
+      }
+    }
+  }
+
+  return projections;
+}
+
+export async function getMonthCashFlow(
+  supabase: SupabaseClient,
+  userId: string,
+  year: number,
+  month: number
+): Promise<MonthCashFlow> {
+  const { start, end } = monthRange(year, month);
+  const rangeStart = new Date(`${start}T00:00:00`);
+  const rangeEnd = new Date(`${end}T00:00:00`);
+  const numDays = daysInMonth(year, month);
+
+  const [{ data: incomeInMonth }, { data: recurringIncome }, categories] =
+    await Promise.all([
+      supabase
+        .from("income")
+        .select("*")
+        .eq("user_id", userId)
+        .gte("date", start)
+        .lt("date", end),
+      supabase
+        .from("income")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("is_recurring", true),
+      getCategoriesWithSubcategories(supabase, userId),
+    ]);
+
+  const actualDatesBySource = new Set<string>();
+  for (const row of (incomeInMonth ?? []) as Income[]) {
+    actualDatesBySource.add(`${row.source ?? "Income"}|${row.date}`);
+  }
+
+  const projected = projectRecurringIncome(
+    (recurringIncome ?? []) as Income[],
+    actualDatesBySource,
+    rangeStart,
+    rangeEnd
+  );
+
+  const days: CashFlowDay[] = Array.from({ length: numDays }, (_, i) => ({
+    day: i + 1,
+    date: `${start.slice(0, 8)}${String(i + 1).padStart(2, "0")}`,
+    income: [],
+    bills: [],
+  }));
+
+  for (const row of (incomeInMonth ?? []) as Income[]) {
+    const day = Number(row.date.slice(8, 10));
+    const bucket = days[day - 1];
+    if (bucket) {
+      bucket.income.push({
+        amount: Number(row.amount),
+        source: row.source ?? "Income",
+        actual: true,
+      });
+    }
+  }
+
+  for (const p of projected) {
+    const day = Number(p.date.slice(8, 10));
+    const bucket = days[day - 1];
+    if (bucket) {
+      bucket.income.push({ amount: p.amount, source: p.source, actual: false });
+    }
+  }
+
+  for (const cat of categories) {
+    for (const sub of cat.subcategories) {
+      if (sub.type === "fixed" && sub.due_day && sub.due_day <= numDays) {
+        days[sub.due_day - 1].bills.push({
+          name: sub.name,
+          categoryName: cat.name,
+          amount: Number(sub.planned_amount),
+        });
+      }
+    }
+  }
+
+  const weeks: CashFlowWeek[] = [];
+  for (let startDay = 1; startDay <= numDays; startDay += 7) {
+    const endDay = Math.min(startDay + 6, numDays);
+    const weekDays = days.slice(startDay - 1, endDay);
+
+    let incomeActual = 0;
+    let incomeProjected = 0;
+    const bills: (CashFlowBillEvent & { day: number })[] = [];
+
+    for (const d of weekDays) {
+      for (const ev of d.income) {
+        if (ev.actual) incomeActual += ev.amount;
+        else incomeProjected += ev.amount;
+      }
+      for (const b of d.bills) bills.push({ ...b, day: d.day });
+    }
+
+    const billsTotal = bills.reduce((s, b) => s + b.amount, 0);
+
+    weeks.push({
+      label: `${startDay}–${endDay}`,
+      startDay,
+      endDay,
+      incomeActual,
+      incomeProjected,
+      bills,
+      billsTotal,
+      freeToSpend: incomeActual + incomeProjected - billsTotal,
+    });
+  }
+
+  return { year, month, days, weeks };
 }

@@ -2,6 +2,7 @@
 // If you change the schema, update this file to match.
 
 export type SubcategoryType = "fixed" | "variable" | "debt";
+export type RecurrenceInterval = "weekly" | "biweekly" | "monthly";
 
 export interface Account {
   id: string;
@@ -43,6 +44,7 @@ export interface Subcategory {
   debt_id: string | null;
   sort_order: number;
   created_at: string;
+  due_day: number | null;
 }
 
 export interface MonthlyOverride {
@@ -84,6 +86,8 @@ export interface Income {
   account_id: string | null;
   note: string | null;
   created_at: string;
+  is_recurring: boolean;
+  recurrence_interval: RecurrenceInterval | null;
 }
 
 export interface IncomePlan {

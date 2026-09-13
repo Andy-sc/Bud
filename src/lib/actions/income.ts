@@ -15,6 +15,10 @@ export async function addIncome(formData: FormData) {
   const source = String(formData.get("source") || "") || null;
   const account_id = String(formData.get("account_id") || "") || null;
   const note = String(formData.get("note") || "") || null;
+  const is_recurring = formData.get("is_recurring") === "on";
+  const recurrence_interval = is_recurring
+    ? String(formData.get("recurrence_interval") || "") || null
+    : null;
 
   if (!date || !amount) {
     throw new Error("Date and amount are required.");
@@ -27,6 +31,8 @@ export async function addIncome(formData: FormData) {
     source,
     account_id,
     note,
+    is_recurring,
+    recurrence_interval,
   });
   if (error) throw new Error(error.message);
 

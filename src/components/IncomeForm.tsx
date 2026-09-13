@@ -2,12 +2,14 @@
 
 import { useState, useTransition } from "react";
 import { addIncome } from "@/lib/actions/income";
-import type { Account } from "@/lib/database.types";
+import type { Account, RecurrenceInterval } from "@/lib/database.types";
 
 export default function IncomeForm({ accounts }: { accounts: Account[] }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [formKey, setFormKey] = useState(0);
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [interval, setInterval] = useState<RecurrenceInterval>("weekly");
 
   return (
     <form
@@ -71,6 +73,33 @@ export default function IncomeForm({ accounts }: { accounts: Account[] }) {
           ))}
         </select>
       </Field>
+
+      <div className="space-y-2">
+        <label className="flex items-center gap-2 text-sm text-[var(--text-secondary)]">
+          <input
+            type="checkbox"
+            name="is_recurring"
+            checked={isRecurring}
+            onChange={(e) => setIsRecurring(e.target.checked)}
+            className="accent-[var(--accent)]"
+          />
+          This is a recurring income
+        </label>
+        {isRecurring && (
+          <Field label="How often">
+            <select
+              name="recurrence_interval"
+              value={interval}
+              onChange={(e) => setInterval(e.target.value as RecurrenceInterval)}
+              className="control w-full px-3 py-2 border border-[var(--border)] bg-[var(--surface)] text-sm"
+            >
+              <option value="weekly">Weekly</option>
+              <option value="biweekly">Every 2 weeks</option>
+              <option value="monthly">Monthly</option>
+            </select>
+          </Field>
+        )}
+      </div>
 
       <Field label="Note (optional)">
         <input

@@ -133,6 +133,7 @@ function SubcategoryRow({ sub }: { sub: Subcategory }) {
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(sub.name);
   const [amount, setAmount] = useState(String(sub.planned_amount));
+  const [dueDay, setDueDay] = useState(String(sub.due_day ?? ""));
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -161,7 +162,12 @@ function SubcategoryRow({ sub }: { sub: Subcategory }) {
             e.preventDefault();
             startTransition(async () => {
               try {
-                await updateSubcategory(sub.id, name, parseFloat(amount) || 0);
+                await updateSubcategory(
+                  sub.id,
+                  name,
+                  parseFloat(amount) || 0,
+                  sub.type === "fixed" && dueDay ? parseInt(dueDay, 10) : null
+                );
                 setEditing(false);
               } catch (err) {
                 setError(err instanceof Error ? err.message : "Error");
@@ -181,6 +187,18 @@ function SubcategoryRow({ sub }: { sub: Subcategory }) {
             onChange={(e) => setAmount(e.target.value)}
             className="control w-24 px-2 py-1 border border-[var(--border)] bg-[var(--surface)] text-sm"
           />
+          {sub.type === "fixed" && (
+            <input
+              type="number"
+              min={1}
+              max={31}
+              value={dueDay}
+              onChange={(e) => setDueDay(e.target.value)}
+              placeholder="Due day"
+              title="Day of month this bill is due"
+              className="control w-20 px-2 py-1 border border-[var(--border)] bg-[var(--surface)] text-sm"
+            />
+          )}
           <button type="submit" disabled={pending} className="text-xs text-[var(--accent)]">
             Save
           </button>
@@ -206,6 +224,7 @@ function SubcategoryRow({ sub }: { sub: Subcategory }) {
         {sub.name}
         <span className="block text-xs text-[var(--text-muted)]">
           {TYPE_LABEL[sub.type]} · plan {money(sub.planned_amount)}
+          {sub.type === "fixed" && sub.due_day ? ` · due day ${sub.due_day}` : ""}
         </span>
       </button>
       <button
@@ -236,6 +255,7 @@ function NewSubcategoryForm({
   const [name, setName] = useState("");
   const [type, setType] = useState<SubcategoryType>("variable");
   const [amount, setAmount] = useState("0");
+  const [dueDay, setDueDay] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -247,7 +267,13 @@ function NewSubcategoryForm({
         if (!name.trim()) return;
         startTransition(async () => {
           try {
-            await addSubcategory(categoryId, name.trim(), type, parseFloat(amount) || 0);
+            await addSubcategory(
+              categoryId,
+              name.trim(),
+              type,
+              parseFloat(amount) || 0,
+              type === "fixed" && dueDay ? parseInt(dueDay, 10) : null
+            );
             onDone();
           } catch (err) {
             setError(err instanceof Error ? err.message : "Error");
@@ -277,6 +303,18 @@ function NewSubcategoryForm({
         placeholder="Planned"
         className="control w-24 px-2 py-1.5 border border-[var(--border)] bg-[var(--surface)] text-sm"
       />
+      {type === "fixed" && (
+        <input
+          type="number"
+          min={1}
+          max={31}
+          value={dueDay}
+          onChange={(e) => setDueDay(e.target.value)}
+          placeholder="Due day"
+          title="Day of month this bill is due"
+          className="control w-20 px-2 py-1.5 border border-[var(--border)] bg-[var(--surface)] text-sm"
+        />
+      )}
       <button
         type="submit"
         disabled={pending}
