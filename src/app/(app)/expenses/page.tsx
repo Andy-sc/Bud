@@ -1,10 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { getAccounts, getCategoriesWithSubcategories } from "@/lib/budget";
-import { deleteExpense } from "@/lib/actions/expenses";
 import ExpenseForm from "@/components/ExpenseForm";
-import { money } from "@/lib/format";
+import ExpenseHistoryList from "@/components/ExpenseHistoryList";
 import type { Expense } from "@/lib/database.types";
-import { CloseIcon } from "@/components/icons";
 
 export default async function ExpensesPage() {
   const supabase = await createClient();
@@ -24,12 +22,6 @@ export default async function ExpensesPage() {
       .limit(50),
   ]);
 
-  const subcatById = new Map<string, string>();
-  for (const c of categories) {
-    for (const s of c.subcategories) subcatById.set(s.id, `${c.name} · ${s.name}`);
-  }
-  const accountById = new Map(accounts.map((a) => [a.id, a.name]));
-
   return (
     <div className="space-y-6">
       <h1 className="text-xl font-semibold text-[var(--text-primary)]">
@@ -44,41 +36,11 @@ export default async function ExpensesPage() {
           <h2 className="font-semibold text-[var(--text-primary)] mb-3">
             Recent expenses
           </h2>
-          <div className="divide-y divide-[var(--border)]">
-            {(expenses as Expense[] | null)?.length ? (
-              (expenses as Expense[]).map((e) => (
-                <div key={e.id} className="py-2.5 flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-sm text-[var(--text-primary)] truncate">
-                      {subcatById.get(e.subcategory_id) ?? "—"}
-                    </p>
-                    <p className="text-xs text-[var(--text-muted)]">
-                      {e.date} · {e.account_id ? accountById.get(e.account_id) : "no account"}
-                      {e.note ? ` · ${e.note}` : ""}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <span className="text-sm font-medium tabular-nums text-[var(--series-8)]">
-                      {money(Number(e.amount))}
-                    </span>
-                    <form action={deleteExpense.bind(null, e.id)}>
-                      <button
-                        type="submit"
-                        className="text-[var(--text-muted)] hover:text-[var(--critical)] text-sm"
-                        aria-label="Delete"
-                      >
-                        <CloseIcon className="w-4 h-4" />
-                      </button>
-                    </form>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-sm text-[var(--text-muted)] py-4">
-                You haven&apos;t logged any expenses yet.
-              </p>
-            )}
-          </div>
+          <ExpenseHistoryList
+            expenses={(expenses as Expense[]) ?? []}
+            categories={categories}
+            accounts={accounts}
+          />
         </div>
       </div>
     </div>

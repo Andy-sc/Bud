@@ -98,6 +98,33 @@ export async function updateSubcategory(
   revalidatePath("/dashboard");
 }
 
+// Lighter than updateSubcategory — touches only the planned amount, so
+// callers that don't have the subcategory's other fields handy (like an
+// inline editor on the dashboard) can't accidentally clobber them.
+export async function updatePlannedAmount(id: string, plannedAmount: number) {
+  const { supabase } = await currentUserId();
+  const { error } = await supabase
+    .from("subcategories")
+    .update({ planned_amount: plannedAmount })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/settings");
+  revalidatePath("/dashboard");
+}
+
+export async function updateSubcategoryDueDay(id: string, dueDay: number | null) {
+  const { supabase } = await currentUserId();
+  const { error } = await supabase
+    .from("subcategories")
+    .update({ due_day: dueDay })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/settings");
+  revalidatePath("/dashboard");
+  revalidatePath("/calendar");
+  revalidatePath("/expenses");
+}
+
 export async function deleteSubcategory(id: string) {
   const { supabase } = await currentUserId();
   const { error } = await supabase.from("subcategories").delete().eq("id", id);

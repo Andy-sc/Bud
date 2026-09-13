@@ -1,5 +1,6 @@
 import ProgressBar from "@/components/ProgressBar";
 import FixedActualEditor from "@/components/FixedActualEditor";
+import PlannedAmountEditor from "@/components/PlannedAmountEditor";
 import { money, pct } from "@/lib/format";
 import { categoryColorVar } from "@/lib/categoryColors";
 import type { CategoryComputed } from "@/lib/budget";
@@ -65,7 +66,12 @@ export default function CategoryCard({
             <div className="min-w-0">
               <p className="text-[var(--text-primary)] truncate">{sub.name}</p>
               <p className="text-xs text-[var(--text-muted)]">
-                {TYPE_LABEL[sub.type]} · plan {money(sub.planned)}
+                {TYPE_LABEL[sub.type]} ·{" "}
+                {sub.type === "debt" ? (
+                  `plan ${money(sub.planned)}`
+                ) : (
+                  <PlannedAmountEditor subcategoryId={sub.id} planned={sub.planned} />
+                )}
               </p>
             </div>
             {sub.type === "fixed" ? (

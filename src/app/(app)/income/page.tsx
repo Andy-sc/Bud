@@ -1,10 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { getAccounts } from "@/lib/budget";
-import { deleteIncome } from "@/lib/actions/income";
 import IncomeForm from "@/components/IncomeForm";
-import { money } from "@/lib/format";
+import IncomeHistoryList from "@/components/IncomeHistoryList";
 import type { Income } from "@/lib/database.types";
-import { CloseIcon } from "@/components/icons";
 
 export default async function IncomePage() {
   const supabase = await createClient();
@@ -23,8 +21,6 @@ export default async function IncomePage() {
       .limit(50),
   ]);
 
-  const accountById = new Map(accounts.map((a) => [a.id, a.name]));
-
   return (
     <div className="space-y-6">
       <h1 className="text-xl font-semibold text-[var(--text-primary)]">
@@ -39,41 +35,7 @@ export default async function IncomePage() {
           <h2 className="font-semibold text-[var(--text-primary)] mb-3">
             Recent income
           </h2>
-          <div className="divide-y divide-[var(--border)]">
-            {(income as Income[] | null)?.length ? (
-              (income as Income[]).map((i) => (
-                <div key={i.id} className="py-2.5 flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-sm text-[var(--text-primary)] truncate">
-                      {i.source || "Income"}
-                    </p>
-                    <p className="text-xs text-[var(--text-muted)]">
-                      {i.date} · {i.account_id ? accountById.get(i.account_id) : "no account"}
-                      {i.note ? ` · ${i.note}` : ""}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3 shrink-0">
-                    <span className="text-sm font-medium tabular-nums text-[var(--good)]">
-                      {money(Number(i.amount))}
-                    </span>
-                    <form action={deleteIncome.bind(null, i.id)}>
-                      <button
-                        type="submit"
-                        className="text-[var(--text-muted)] hover:text-[var(--critical)] text-sm"
-                        aria-label="Delete"
-                      >
-                        <CloseIcon className="w-4 h-4" />
-                      </button>
-                    </form>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <p className="text-sm text-[var(--text-muted)] py-4">
-                You haven&apos;t logged any income yet.
-              </p>
-            )}
-          </div>
+          <IncomeHistoryList income={(income as Income[]) ?? []} accounts={accounts} />
         </div>
       </div>
     </div>
