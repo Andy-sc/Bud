@@ -56,11 +56,11 @@ gratuitos" más abajo.
    - **Project URL** → algo como `https://xxxxx.supabase.co`
    - **anon public key** → una clave larga
    Guarda ambos valores, los necesitas en el Paso 3.
-7. En **Authentication** → **Providers** → **Email**, baja el **"Minimum
-   password length"** a `4` (el PIN de la app funciona como contraseña
-   por dentro, y por defecto Supabase exige mínimo 6 caracteres), y
-   confirma que **"Confirm email"** esté **desactivado** — la app no usa
-   correos reales, así que no hay nada que confirmar.
+7. En **Authentication** → **Providers** → **Email**, confirma que
+   **"Confirm email"** esté **desactivado** — la app no usa correos
+   reales, así que no hay nada que confirmar. (El "Minimum password
+   length" puedes dejarlo en su valor por defecto, 6 — el PIN de la app
+   es de 6 dígitos justo por eso.)
 
 ## Paso 2 — Probar en tu computadora (opcional, puedes saltar al Paso 3)
 

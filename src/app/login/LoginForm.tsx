@@ -44,9 +44,10 @@ export default function LoginForm() {
           name="pin"
           type="password"
           inputMode="numeric"
+          minLength={6}
           autoFocus
           required
-          placeholder="••••"
+          placeholder="••••••"
           className="control w-full px-4 py-3 border border-[var(--border)] bg-[var(--surface-2)] text-[var(--text-primary)] text-center tracking-[0.4em] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
         />
       </div>
