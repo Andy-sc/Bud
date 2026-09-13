@@ -122,6 +122,16 @@ export interface Profile {
   created_at: string;
 }
 
+export interface Goal {
+  id: string;
+  user_id: string;
+  name: string;
+  target_amount: number;
+  target_date: string | null;
+  saved_so_far: number;
+  created_at: string;
+}
+
 // Minimal Database type so @supabase/ssr's generics are satisfied.
 // (Not a full generated schema — good enough since we type query results ourselves.)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

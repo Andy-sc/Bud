@@ -9,6 +9,7 @@ import {
   OverviewIcon,
   ExpensesIcon,
   IncomeIcon,
+  GoalsIcon,
   DebtsIcon,
   CategoriesIcon,
   SignOutIcon,
@@ -18,6 +19,7 @@ const LINKS = [
   { href: "/dashboard", label: "Overview", Icon: OverviewIcon },
   { href: "/expenses", label: "Expenses", Icon: ExpensesIcon },
   { href: "/income", label: "Income", Icon: IncomeIcon },
+  { href: "/goals", label: "Goals", Icon: GoalsIcon },
   { href: "/debts", label: "Debts", Icon: DebtsIcon },
   { href: "/settings", label: "Categories", Icon: CategoriesIcon },
 ];

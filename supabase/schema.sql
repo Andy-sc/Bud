@@ -134,6 +134,16 @@ create table if not exists public.user_settings (
   display_name text
 );
 
+create table if not exists public.goals (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  name text not null,
+  target_amount numeric(12,2) not null,
+  target_date date,
+  saved_so_far numeric(12,2) not null default 0,
+  created_at timestamptz not null default now()
+);
+
 -- One row per login profile shown on the login screen ("Vale", "Jose",
 -- anyone else who self-adds one later). id is the same as the matching
 -- auth.users id — the PIN is that account's password. email is an
@@ -173,6 +183,7 @@ alter table public.income_plan enable row level security;
 alter table public.debt_payments enable row level security;
 alter table public.user_settings enable row level security;
 alter table public.profiles enable row level security;
+alter table public.goals enable row level security;
 
 do $$
 declare
@@ -180,7 +191,7 @@ declare
 begin
   for t in select unnest(array[
     'accounts','categories','subcategories','debts','monthly_overrides',
-    'fixed_actuals','expenses','income','income_plan','debt_payments'
+    'fixed_actuals','expenses','income','income_plan','debt_payments','goals'
   ])
   loop
     execute format('drop policy if exists "owner_all" on public.%I;', t);

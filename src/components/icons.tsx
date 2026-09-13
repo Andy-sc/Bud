@@ -55,6 +55,16 @@ export function IncomeIcon({ className }: IconProps) {
   );
 }
 
+export function GoalsIcon({ className }: IconProps) {
+  return (
+    <svg className={className} {...base}>
+      <circle cx="12" cy="12" r="9" />
+      <circle cx="12" cy="12" r="5" />
+      <circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" />
+    </svg>
+  );
+}
+
 export function DebtsIcon({ className }: IconProps) {
   return (
     <svg className={className} {...base}>

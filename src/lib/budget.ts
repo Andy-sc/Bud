@@ -4,6 +4,7 @@ import type {
   Account,
   Category,
   Debt,
+  Goal,
   Income,
   Subcategory,
 } from "@/lib/database.types";
@@ -658,4 +659,58 @@ export async function getMonthCashFlow(
   }
 
   return { year, month, days, weeks };
+}
+
+export async function getGoals(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<Goal[]> {
+  const { data } = await supabase
+    .from("goals")
+    .select("*")
+    .eq("user_id", userId)
+    .order("created_at");
+  return data ?? [];
+}
+
+export interface GoalProgress {
+  remaining: number;
+  monthsLeft: number | null;
+  monthlyContribution: number | null;
+  pctSaved: number;
+  onTrack: boolean;
+}
+
+/**
+ * How much to put toward a goal each month to hit it by its target date.
+ * No target date -> no monthly figure to compute, just track progress.
+ */
+export function computeGoalProgress(goal: Goal, from: Date = new Date()): GoalProgress {
+  const remaining = Math.max(Number(goal.target_amount) - Number(goal.saved_so_far), 0);
+  const pctSaved =
+    Number(goal.target_amount) > 0
+      ? Math.min(Number(goal.saved_so_far) / Number(goal.target_amount), 1)
+      : 0;
+
+  if (!goal.target_date) {
+    return { remaining, monthsLeft: null, monthlyContribution: null, pctSaved, onTrack: true };
+  }
+
+  const target = new Date(`${goal.target_date}T00:00:00`);
+  const monthsLeft = Math.max(
+    (target.getFullYear() - from.getFullYear()) * 12 +
+      (target.getMonth() - from.getMonth()) +
+      (target.getDate() >= from.getDate() ? 0 : -1),
+    0
+  );
+  const effectiveMonths = Math.max(monthsLeft, 1);
+  const monthlyContribution = remaining / effectiveMonths;
+
+  return {
+    remaining,
+    monthsLeft,
+    monthlyContribution,
+    pctSaved,
+    onTrack: remaining === 0 || monthsLeft > 0,
+  };
 }
