@@ -1,20 +1,20 @@
 -- OPTIONAL — sets up a second, fully separate budget profile (Jose's)
--- with the same category structure as Maria's, but with his own accounts
+-- with the same category structure as Vale's, but with his own accounts
 -- and blank planned amounts for him to fill in.
 --
 -- Requires:
 --   1) schema.sql has already been run once (shared by all users).
---   2) Jose has signed in to the app at least once with his own email
---      (this creates his auth.users row — the login screen is enough,
---      he doesn't need to click "Load starter template").
+--   2) Jose has signed in to the app at least once (picked "Jose" on the
+--      login screen and set his PIN — this creates his auth.users row).
+--      He doesn't need to click "Load starter template".
 --
 -- Do NOT have him click "Load starter template" before running this — that
--- button loads Maria's category structure with HER planned amounts. This
+-- button loads Vale's category structure with HER planned amounts. This
 -- script builds Jose's structure directly. If he clicks it afterward by
 -- mistake, it's harmless: that function skips itself once categories
 -- already exist for a user.
 --
--- Real numbers used below (from what Maria provided): Capital One card
+-- Real numbers used below (from what Vale provided): Capital One card
 -- balances, the Amex balance, and the student loan balance + monthly
 -- payment. Everything else (rent, groceries, gas, etc.) is seeded at $0 so
 -- Jose can fill in his own real amounts from "Categories" once he's signed
@@ -22,12 +22,13 @@
 -- ("Capital One Card 1/2") since we don't have his names for them — he can
 -- rename any account from Categories -> Accounts.
 --
--- HOW TO RUN: replace target_email below with Jose's real sign-in email,
--- then run the whole file in the Supabase SQL Editor.
+-- HOW TO RUN: just run the whole file as-is, after Jose has picked his
+-- profile and set a PIN at least once (his login uses a fixed internal
+-- address, jose@bud.internal — no real email needed).
 
 do $$
 declare
-  target_email text := 'REPLACE_WITH_JOSES_EMAIL@example.com'; -- <-- put Jose's real sign-in email here
+  target_email text := 'jose@bud.internal';
   uid uuid;
   cat_home uuid;
   cat_transport uuid;
@@ -43,7 +44,7 @@ begin
   select id into uid from auth.users where email = target_email;
 
   if uid is null then
-    raise exception 'No user found with email %. Have Jose sign in to the app at least once first, then re-run this with his real email.', target_email;
+    raise exception 'No user found with email %. Have Jose pick his profile and set a PIN on the login screen first, then re-run this.', target_email;
   end if;
 
   if exists (select 1 from public.categories where user_id = uid) then
@@ -70,7 +71,7 @@ begin
   update public.accounts set starting_balance = 575.73, balance_as_of = current_date
     where user_id = uid and name = 'American Express';
 
-  -- Categories — same structure as Maria's
+  -- Categories — same structure as Vale's
   insert into public.categories (user_id, name, sort_order) values (uid, 'Home', 1) returning id into cat_home;
   insert into public.categories (user_id, name, sort_order) values (uid, 'Transportation', 2) returning id into cat_transport;
   insert into public.categories (user_id, name, sort_order) values (uid, 'Daily Living', 3) returning id into cat_daily;

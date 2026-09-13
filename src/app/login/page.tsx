@@ -11,7 +11,7 @@ export default function LoginPage() {
             Bud — Personal Budget
           </h1>
           <p className="text-sm text-[var(--text-secondary)] mt-1">
-            Sign in with your email, no password needed.
+            Choose your profile and enter your PIN.
           </p>
         </div>
         <LoginForm />

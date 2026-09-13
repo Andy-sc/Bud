@@ -1,47 +1,53 @@
 "use client";
 
-import { useActionState } from "react";
-import { sendMagicLink, type LoginState } from "./actions";
-import { MailIcon } from "@/components/icons";
+import { useActionState, useState } from "react";
+import { pinLogin, type LoginState } from "./actions";
+import { PROFILES } from "@/lib/profiles";
 
 const initialState: LoginState = { status: "idle" };
 
 export default function LoginForm() {
-  const [state, formAction, pending] = useActionState(sendMagicLink, initialState);
+  const [selected, setSelected] = useState<string | null>(null);
+  const [state, formAction, pending] = useActionState(pinLogin, initialState);
 
-  if (state.status === "sent") {
+  if (!selected) {
     return (
-      <div className="text-center space-y-3">
-        <div className="mx-auto w-14 h-14 rounded-full bg-[color-mix(in_srgb,var(--good)_15%,transparent)] flex items-center justify-center">
-          <MailIcon className="w-6 h-6 text-[var(--good)]" />
-        </div>
-        <p className="text-[var(--text-primary)] font-medium">
-          We sent a sign-in link to
-        </p>
-        <p className="text-[var(--accent)] font-semibold">{state.message}</p>
-        <p className="text-sm text-[var(--text-secondary)]">
-          Open your email and tap the link to sign in. You can close this tab.
-        </p>
+      <div className="space-y-3">
+        {PROFILES.map((profile) => (
+          <button
+            key={profile.id}
+            type="button"
+            onClick={() => setSelected(profile.id)}
+            className="control w-full py-3 font-medium text-[var(--text-primary)] bg-[var(--surface-2)] border border-[var(--border)] hover:border-[var(--accent)] transition"
+          >
+            {profile.label}
+          </button>
+        ))}
       </div>
     );
   }
 
+  const profile = PROFILES.find((p) => p.id === selected)!;
+
   return (
     <form action={formAction} className="space-y-4">
+      <input type="hidden" name="profile" value={profile.id} />
       <div>
         <label
-          htmlFor="email"
+          htmlFor="pin"
           className="block text-sm font-medium text-[var(--text-secondary)] mb-1.5"
         >
-          Email
+          PIN for {profile.label}
         </label>
         <input
-          id="email"
-          name="email"
-          type="email"
+          id="pin"
+          name="pin"
+          type="password"
+          inputMode="numeric"
+          autoFocus
           required
-          placeholder="you@example.com"
-          className="control w-full px-4 py-3 border border-[var(--border)] bg-[var(--surface-2)] text-[var(--text-primary)] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
+          placeholder="••••"
+          className="control w-full px-4 py-3 border border-[var(--border)] bg-[var(--surface-2)] text-[var(--text-primary)] text-center tracking-[0.4em] focus:outline-none focus:ring-2 focus:ring-[var(--accent)]"
         />
       </div>
       {state.status === "error" && (
@@ -52,7 +58,14 @@ export default function LoginForm() {
         disabled={pending}
         className="control w-full py-3 font-medium text-[var(--accent-ink)] bg-[var(--accent)] hover:opacity-90 disabled:opacity-60 transition"
       >
-        {pending ? "Sending..." : "Send sign-in link"}
+        {pending ? "Checking..." : "Continue"}
+      </button>
+      <button
+        type="button"
+        onClick={() => setSelected(null)}
+        className="w-full text-sm text-[var(--text-muted)] hover:text-[var(--text-secondary)]"
+      >
+        Not {profile.label}?
       </button>
     </form>
   );

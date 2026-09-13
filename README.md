@@ -25,8 +25,9 @@ español solo porque así hablamos — es la guía para ti, no parte de la app.
   Checking, Chase Savings, Chase Credit, Vanguard, Venmo).
 - **Administrar categorías**: agrega, edita o elimina categorías,
   subcategorías y cuentas sin tocar código.
-- **Un login por persona** (magic link, sin contraseña) — tú y Jose
-  pueden tener cada uno su propio presupuesto separado en la misma app.
+- **Un perfil por persona con PIN** — en la pantalla de entrada eliges tu
+  nombre (Vale o Jose) y pones tu PIN; cada quien tiene su presupuesto
+  100% separado en la misma app, sin usar correos ni contraseñas.
 
 Construida con Next.js (React) + Supabase (base de datos y autenticación) +
 Vercel (hosting). Ambos servicios tienen un plan gratuito que no requiere
@@ -55,10 +56,11 @@ gratuitos" más abajo.
    - **Project URL** → algo como `https://xxxxx.supabase.co`
    - **anon public key** → una clave larga
    Guarda ambos valores, los necesitas en el Paso 3.
-7. En **Authentication** → **Sign In / Providers**, confirma que **Email**
-   esté activado (lo está por defecto). En **Authentication** → **URL
-   Configuration**, dejaremos la "Site URL" configurada en el Paso 3 una vez
-   tengas tu dominio de Vercel.
+7. En **Authentication** → **Providers** → **Email**, baja el **"Minimum
+   password length"** a `4` (el PIN de la app funciona como contraseña
+   por dentro, y por defecto Supabase exige mínimo 6 caracteres), y
+   confirma que **"Confirm email"** esté **desactivado** — la app no usa
+   correos reales, así que no hay nada que confirmar.
 
 ## Paso 2 — Probar en tu computadora (opcional, puedes saltar al Paso 3)
 
@@ -69,42 +71,35 @@ cp .env.local.example .env.local
 npm run dev
 ```
 
-Abre `http://localhost:3000`, entra con tu correo, revisa el enlace mágico
-que te llega, y haz clic en **"Load starter template"** la primera vez. La
-app está en inglés — estas instrucciones están en español solo para
-guiarte a ti.
+Abre `http://localhost:3000`, elige tu perfil ("Vale"), pon el PIN que
+quieras usar (la primera vez que lo escribes, ese PIN queda guardado como
+el tuyo), y haz clic en **"Load starter template"**. La app está en
+inglés — estas instrucciones están en español solo para guiarte a ti.
 
 ## Paso 3 — Desplegar en Vercel (hosting)
 
 1. Ve a **[vercel.com](https://vercel.com)** y crea una cuenta gratis
    (lo más fácil: **Continue with GitHub**, usando la misma cuenta de
    GitHub donde vive este repositorio).
-2. Clic en **Add New** → **Project**, elige este repositorio (`bud`) e
-   impórtalo.
+2. Clic en **Add New** → **Project**, elige este repositorio (`Bud`) e
+   impórtalo. Si el nombre que le pongas al proyecto no puede llevar
+   mayúsculas ni espacios, usa algo como `bud` o `bud-presupuesto`.
 3. En **Environment Variables**, agrega:
    - `NEXT_PUBLIC_SUPABASE_URL` = tu Project URL del Paso 1
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = tu anon public key del Paso 1
-   - `NEXT_PUBLIC_SITE_URL` = (lo agregas después de desplegar, ver paso 4)
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY` = tu publishable/anon key del Paso 1
 4. Clic en **Deploy**. En 1-2 minutos tendrás una URL como
-   `https://bud-tuusuario.vercel.app`.
-5. Copia esa URL y:
-   - En Vercel → **Settings** → **Environment Variables**, edita
-     `NEXT_PUBLIC_SITE_URL` con esa URL exacta (sin `/` al final) y vuelve a
-     desplegar (**Deployments** → los tres puntos del último deploy →
-     **Redeploy**).
-   - En Supabase → **Authentication** → **URL Configuration**, pon esa misma
-     URL en **Site URL**, y agrégala también en **Redirect URLs** seguida de
-     `/auth/callback` (ej. `https://bud-tuusuario.vercel.app/auth/callback`).
+   `https://tu-proyecto.vercel.app`.
 
-¡Listo! Entra a tu URL de Vercel desde el celular o la computadora, con tu
-correo, y ya puedes usar la app desde cualquier lugar.
+¡Listo! Entra a tu URL de Vercel desde el celular o la computadora, elige
+tu perfil, y ya puedes usar la app desde cualquier lugar.
 
 ## Paso 4 — Cargar tu presupuesto
 
-1. La primera vez que entres, verás la pantalla de bienvenida — haz clic en
-   **"Load starter template"**. Esto crea las categorías, subcategorías,
-   cuentas y la deuda "Hermana" con los montos que ya definiste (rent
-   $1,130, car insurance $137.94, etc.).
+1. La primera vez que entres, elige tu perfil ("Vale"), pon el PIN que
+   quieras usar de ahora en adelante, y verás la pantalla de bienvenida —
+   haz clic en **"Load starter template"**. Esto crea las categorías,
+   subcategorías, cuentas y la deuda "Hermana" con los montos que ya
+   definiste (rent $1,130, car insurance $137.94, etc.).
 2. Tu **préstamo del carro (car loan)** no se precarga — necesita el saldo
    real y la tasa de interés, que solo tú tienes. Ve a **Debts** → **"+ New
    debt"** y captúralo con tu saldo actual, tasa anual, y tu pago mensual
@@ -114,11 +109,10 @@ correo, y ya puedes usar la app desde cualquier lugar.
 3. *(Opcional, solo para tu cuenta, no la de Jose)* — si quieres que la
    app arranque reflejando tus saldos reales y tu primer pago ya recibido,
    ve a Supabase → **SQL Editor**, abre
-   [`supabase/seed_my_real_data.sql`](./supabase/seed_my_real_data.sql),
-   confirma que el correo dentro del archivo (`target_email`) sea el mismo
-   con el que entraste, y dale **Run**. Esto pone tu Chase Checking en
-   $789.04, tu Chase Savings en $625, y registra tu pago del 4 de
-   septiembre de $1,139.92.
+   [`supabase/seed_my_real_data.sql`](./supabase/seed_my_real_data.sql), y
+   dale **Run** tal cual está. Esto pone tu Chase Checking en $789.04, tu
+   Chase Savings en $625, y registra tu pago del 4 de septiembre de
+   $1,139.92.
 4. Ve a **Categories** para ajustar cualquier monto o agregar lo que falte
    (por ejemplo, cuando confirmes el monto real de electricidad/wifi/agua).
    Todo lo que agregues o edites aquí — una categoría nueva, una
@@ -128,16 +122,18 @@ correo, y ya puedes usar la app desde cualquier lugar.
 
 ## Agregar el perfil de Jose
 
-Cada persona tiene su propio login (magic link con su correo), así que sus
-datos quedan 100% separados de los tuyos automáticamente. Pasos:
+Cada quien elige su nombre y su propio PIN en la pantalla de entrada, así
+que sus datos quedan 100% separados de los tuyos automáticamente. Pasos:
 
-1. Pídele a Jose que entre a la misma URL de Vercel con **su propio
-   correo**. Supabase le crea su cuenta al instante. Va a ver la pantalla
-   de bienvenida ("Load starter template") — **que no le dé clic todavía**.
+1. Pídele a Jose que entre a la misma URL de Vercel, elija **"Jose"** en
+   la pantalla de entrada, y ponga el PIN que quiera usar de ahora en
+   adelante (queda guardado como suyo desde la primera vez que lo escribe).
+   Va a ver la pantalla de bienvenida ("Load starter template") — **que no
+   le dé clic todavía**.
 2. Ve a Supabase → **SQL Editor**, abre
-   [`supabase/seed_jose_budget.sql`](./supabase/seed_jose_budget.sql),
-   reemplaza `REPLACE_WITH_JOSES_EMAIL@example.com` por el correo exacto
-   con el que Jose entró, y dale **Run**.
+   [`supabase/seed_jose_budget.sql`](./supabase/seed_jose_budget.sql), y
+   dale **Run** tal cual está (no hay que editar ningún correo — su perfil
+   usa una dirección interna fija, `jose@bud.internal`).
 3. Esto le crea la misma estructura de categorías que la tuya (Home,
    Transportation, Daily Living, Personal, Savings/Investing, Travel,
    Debt, Buffer) pero **en ceros**, para que él las llene con sus propios
