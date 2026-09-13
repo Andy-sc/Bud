@@ -54,8 +54,9 @@ export default async function DashboardPage({
   return (
     <div className="space-y-6">
       <BudgetRemainingBanner
-        expensesPlanned={budget.expensesPlanned}
+        incomeActual={budget.incomeActual}
         expensesActual={budget.expensesActual}
+        expensesPlanned={budget.expensesPlanned}
       />
 
       <YearSummary data={yearSummary} />
