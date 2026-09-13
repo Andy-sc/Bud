@@ -1,5 +1,6 @@
 import { money } from "@/lib/format";
 import type { MonthCashFlow } from "@/lib/budget";
+import DueDayEditor from "@/components/DueDayEditor";
 
 export default function CashFlowWeekList({ data }: { data: MonthCashFlow }) {
   return (
@@ -41,8 +42,9 @@ export default function CashFlowWeekList({ data }: { data: MonthCashFlow }) {
               <ul className="text-xs text-[var(--text-muted)] space-y-0.5 pt-1 border-t border-[var(--border)]">
                 {week.bills.map((b, i) => (
                   <li key={i} className="flex items-center justify-between">
-                    <span>
-                      Day {b.day} · {b.name}
+                    <span className="flex items-center gap-1">
+                      <DueDayEditor subcategoryId={b.subcategoryId} day={b.day} />
+                      <span>· {b.name}</span>
                     </span>
                     <span className="tabular-nums">{money(b.amount)}</span>
                   </li>

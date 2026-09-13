@@ -479,6 +479,7 @@ export interface CashFlowIncomeEvent {
 }
 
 export interface CashFlowBillEvent {
+  subcategoryId: string;
   name: string;
   categoryName: string;
   amount: number;
@@ -647,6 +648,7 @@ export async function getMonthCashFlow(
     for (const sub of cat.subcategories) {
       if (sub.type === "fixed" && sub.due_day && sub.due_day <= numDays) {
         days[sub.due_day - 1].bills.push({
+          subcategoryId: sub.id,
           name: sub.name,
           categoryName: cat.name,
           amount: Number(sub.planned_amount),

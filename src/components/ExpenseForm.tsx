@@ -2,7 +2,7 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { addExpense } from "@/lib/actions/expenses";
-import { addCategory, addSubcategory } from "@/lib/actions/categories";
+import { addCategory, addSubcategory, updateSubcategoryDueDay } from "@/lib/actions/categories";
 import type { Account, Category, Subcategory, SubcategoryType } from "@/lib/database.types";
 
 type CategoryWithSubs = Category & { subcategories: Subcategory[] };
@@ -48,6 +48,7 @@ export default function ExpenseForm({
   );
 
   const activeSubcategoryId = subcategoryId || subcategories[0]?.id || "";
+  const activeSubcategory = subcategories.find((s) => s.id === activeSubcategoryId) ?? null;
 
   function handleCategoryChange(value: string) {
     if (value === NEW_CATEGORY) {
@@ -132,10 +133,26 @@ export default function ExpenseForm({
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
         formData.set("subcategory_id", activeSubcategoryId);
+        const payDayRaw = formData.get("due_day");
+        const payDay = payDayRaw ? parseInt(String(payDayRaw), 10) : null;
         setError(null);
         startTransition(async () => {
           try {
             await addExpense(formData);
+            if (
+              activeSubcategory?.type === "fixed" &&
+              payDay !== (activeSubcategory.due_day ?? null)
+            ) {
+              await updateSubcategoryDueDay(activeSubcategory.id, payDay);
+              setCategories((prev) =>
+                prev.map((c) => ({
+                  ...c,
+                  subcategories: c.subcategories.map((s) =>
+                    s.id === activeSubcategory.id ? { ...s, due_day: payDay } : s
+                  ),
+                }))
+              );
+            }
             setFormKey((k) => k + 1);
           } catch (err) {
             setError(err instanceof Error ? err.message : "Something went wrong.");
@@ -266,6 +283,21 @@ export default function ExpenseForm({
               <option value={NEW_SUBCATEGORY}>+ New subcategory...</option>
             </select>
           )}
+        </Field>
+      )}
+
+      {activeSubcategory?.type === "fixed" && (
+        <Field label="Which day do you want to pay this on?">
+          <input
+            key={activeSubcategory.id}
+            type="number"
+            name="due_day"
+            min={1}
+            max={31}
+            defaultValue={activeSubcategory.due_day ?? ""}
+            placeholder="e.g. 15"
+            className="control w-full px-3 py-2 border border-[var(--border)] bg-[var(--surface)] text-sm"
+          />
         </Field>
       )}
 

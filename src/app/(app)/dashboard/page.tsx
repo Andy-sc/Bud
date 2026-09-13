@@ -2,7 +2,6 @@ import { createClient } from "@/lib/supabase/server";
 import {
   getAccountSummary,
   getMonthBudget,
-  getMonthCashFlow,
   getSpendingByAccount,
   getYearSummary,
 } from "@/lib/budget";
@@ -14,7 +13,6 @@ import IncomeCard from "@/components/IncomeCard";
 import CategoryCard from "@/components/CategoryCard";
 import PlannedVsActualChart from "@/components/charts/PlannedVsActualChart";
 import SpendingByAccountChart from "@/components/charts/SpendingByAccountChart";
-import CashFlowSection from "@/components/CashFlowSection";
 import AccountSummary from "@/components/AccountSummary";
 import { money } from "@/lib/format";
 
@@ -34,11 +32,10 @@ export default async function DashboardPage({
   } = await supabase.auth.getUser();
   const userId = user!.id;
 
-  const [budget, yearSummary, accountSpending, cashFlow, accountSummary] = await Promise.all([
+  const [budget, yearSummary, accountSpending, accountSummary] = await Promise.all([
     getMonthBudget(supabase, userId, year, month),
     getYearSummary(supabase, userId, year),
     getSpendingByAccount(supabase, userId, year, month),
-    getMonthCashFlow(supabase, userId, year, month),
     getAccountSummary(supabase, userId),
   ]);
 
@@ -96,8 +93,6 @@ export default async function DashboardPage({
           </p>
         </div>
       </div>
-
-      <CashFlowSection data={cashFlow} />
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <div className="card p-5">
