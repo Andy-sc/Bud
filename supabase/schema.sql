@@ -15,8 +15,13 @@ create table if not exists public.accounts (
   starting_balance numeric(12,2) not null default 0,
   balance_as_of date,
   sort_order int not null default 0,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  account_type text not null default 'checking'
+    check (account_type in ('checking', 'savings', 'credit', 'investment', 'cash'))
 );
+
+alter table public.accounts add column if not exists account_type text not null default 'checking'
+  check (account_type in ('checking', 'savings', 'credit', 'investment', 'cash'));
 
 create table if not exists public.categories (
   id uuid primary key default gen_random_uuid(),

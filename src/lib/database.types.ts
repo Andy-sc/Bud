@@ -3,6 +3,7 @@
 
 export type SubcategoryType = "fixed" | "variable" | "debt";
 export type RecurrenceInterval = "weekly" | "biweekly" | "monthly";
+export type AccountType = "checking" | "savings" | "credit" | "investment" | "cash";
 
 export interface Account {
   id: string;
@@ -12,6 +13,7 @@ export interface Account {
   balance_as_of: string | null;
   sort_order: number;
   created_at: string;
+  account_type: AccountType;
 }
 
 export interface Category {

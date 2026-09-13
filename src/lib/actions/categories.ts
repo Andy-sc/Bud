@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import type { SubcategoryType } from "@/lib/database.types";
+import type { AccountType, SubcategoryType } from "@/lib/database.types";
 
 async function currentUserId() {
   const supabase = await createClient();
@@ -107,24 +107,48 @@ export async function deleteSubcategory(id: string) {
   revalidatePath("/dashboard");
 }
 
-export async function addAccount(name: string) {
+export async function addAccount(
+  name: string,
+  accountType: AccountType = "checking",
+  startingBalance = 0
+) {
   const { supabase, userId } = await currentUserId();
   const { count } = await supabase
     .from("accounts")
     .select("id", { count: "exact", head: true })
     .eq("user_id", userId);
-  const { error } = await supabase
-    .from("accounts")
-    .insert({ user_id: userId, name, sort_order: count ?? 0 });
+  const { error } = await supabase.from("accounts").insert({
+    user_id: userId,
+    name,
+    account_type: accountType,
+    starting_balance: startingBalance,
+    sort_order: count ?? 0,
+  });
   if (error) throw new Error(error.message);
   revalidatePath("/settings");
+  revalidatePath("/dashboard");
 }
 
-export async function renameAccount(id: string, name: string) {
+export async function updateAccountDetails(
+  id: string,
+  name: string,
+  accountType: AccountType,
+  startingBalance: number,
+  balanceAsOf: string | null
+) {
   const { supabase } = await currentUserId();
-  const { error } = await supabase.from("accounts").update({ name }).eq("id", id);
+  const { error } = await supabase
+    .from("accounts")
+    .update({
+      name,
+      account_type: accountType,
+      starting_balance: startingBalance,
+      balance_as_of: balanceAsOf,
+    })
+    .eq("id", id);
   if (error) throw new Error(error.message);
   revalidatePath("/settings");
+  revalidatePath("/dashboard");
 }
 
 export async function deleteAccount(id: string) {

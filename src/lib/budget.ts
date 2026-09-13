@@ -2,6 +2,7 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { monthRange } from "@/lib/date";
 import type {
   Account,
+  AccountType,
   Category,
   Debt,
   Goal,
@@ -659,6 +660,96 @@ export async function getMonthCashFlow(
   }
 
   return { year, month, days, weeks };
+}
+
+export interface AccountBalance extends Account {
+  currentBalance: number;
+}
+
+export interface AccountSummary {
+  checking: AccountBalance[];
+  savings: AccountBalance[];
+  credit: AccountBalance[];
+  investment: AccountBalance[];
+  cash: AccountBalance[];
+  totalChecking: number;
+  totalSavings: number;
+  totalCredit: number;
+  totalInvestment: number;
+  totalCash: number;
+  netCash: number;
+}
+
+/**
+ * Each account's `starting_balance` is a snapshot as of `balance_as_of`
+ * (or all-time if that's null). This adds everything logged against the
+ * account since then — for a Credit account that balance means "amount
+ * owed", so a charge (expense) increases it instead of decreasing it.
+ */
+export async function getAccountSummary(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<AccountSummary> {
+  const [accounts, { data: incomeRows }, { data: expenseRows }, { data: debtPaymentRows }] =
+    await Promise.all([
+      getAccounts(supabase, userId),
+      supabase.from("income").select("account_id, amount, date").eq("user_id", userId),
+      supabase.from("expenses").select("account_id, amount, date").eq("user_id", userId),
+      supabase
+        .from("debt_payments")
+        .select("account_id, amount, date")
+        .eq("user_id", userId),
+    ]);
+
+  function netFlowFor(accountId: string, since: string | null) {
+    const inRange = (date: string) => !since || date >= since;
+    const sumFor = (rows: { account_id: string | null; amount: number; date: string }[] | null) =>
+      (rows ?? [])
+        .filter((r) => r.account_id === accountId && inRange(r.date))
+        .reduce((s, r) => s + Number(r.amount), 0);
+
+    return (
+      sumFor(incomeRows) - sumFor(expenseRows) - sumFor(debtPaymentRows)
+    );
+  }
+
+  const withBalance: AccountBalance[] = accounts.map((a) => {
+    const netFlow = netFlowFor(a.id, a.balance_as_of);
+    const currentBalance =
+      a.account_type === "credit"
+        ? Number(a.starting_balance) - netFlow
+        : Number(a.starting_balance) + netFlow;
+    return { ...a, currentBalance };
+  });
+
+  const byType = (type: AccountType) => withBalance.filter((a) => a.account_type === type);
+  const sum = (list: AccountBalance[]) => list.reduce((s, a) => s + a.currentBalance, 0);
+
+  const checking = byType("checking");
+  const savings = byType("savings");
+  const credit = byType("credit");
+  const investment = byType("investment");
+  const cash = byType("cash");
+
+  const totalChecking = sum(checking);
+  const totalSavings = sum(savings);
+  const totalCredit = sum(credit);
+  const totalInvestment = sum(investment);
+  const totalCash = sum(cash);
+
+  return {
+    checking,
+    savings,
+    credit,
+    investment,
+    cash,
+    totalChecking,
+    totalSavings,
+    totalCredit,
+    totalInvestment,
+    totalCash,
+    netCash: totalChecking + totalSavings + totalCash - totalCredit,
+  };
 }
 
 export async function getGoals(
