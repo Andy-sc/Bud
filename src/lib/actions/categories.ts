@@ -19,12 +19,16 @@ export async function addCategory(name: string) {
     .from("categories")
     .select("id", { count: "exact", head: true })
     .eq("user_id", userId);
-  const { error } = await supabase
+  const { data, error } = await supabase
     .from("categories")
-    .insert({ user_id: userId, name, sort_order: count ?? 0 });
+    .insert({ user_id: userId, name, sort_order: count ?? 0 })
+    .select()
+    .single();
   if (error) throw new Error(error.message);
   revalidatePath("/settings");
   revalidatePath("/dashboard");
+  revalidatePath("/expenses");
+  return data;
 }
 
 export async function renameCategory(id: string, name: string) {
@@ -54,17 +58,23 @@ export async function addSubcategory(
   plannedAmount: number
 ) {
   const { supabase, userId } = await currentUserId();
-  const { error } = await supabase.from("subcategories").insert({
-    user_id: userId,
-    category_id: categoryId,
-    name,
-    type,
-    planned_amount: plannedAmount,
-    sort_order: 0,
-  });
+  const { data, error } = await supabase
+    .from("subcategories")
+    .insert({
+      user_id: userId,
+      category_id: categoryId,
+      name,
+      type,
+      planned_amount: plannedAmount,
+      sort_order: 0,
+    })
+    .select()
+    .single();
   if (error) throw new Error(error.message);
   revalidatePath("/settings");
   revalidatePath("/dashboard");
+  revalidatePath("/expenses");
+  return data;
 }
 
 export async function updateSubcategory(

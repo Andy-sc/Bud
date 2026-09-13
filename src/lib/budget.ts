@@ -182,7 +182,12 @@ export async function getMonthBudget(
         if (sub.type === "variable") {
           actual = expensesBySubcat.get(sub.id) ?? 0;
         } else if (sub.type === "fixed") {
-          actual = fixedActualBySubcat.get(sub.id) ?? 0;
+          // Additive: the hand-typed monthly total (dashboard card) plus
+          // any itemized expenses logged for it from the Expenses page —
+          // either path (or both together) counts toward the total.
+          actual =
+            (fixedActualBySubcat.get(sub.id) ?? 0) +
+            (expensesBySubcat.get(sub.id) ?? 0);
         } else if (sub.type === "debt" && sub.debt_id) {
           actual = debtPaymentsByDebt.get(sub.debt_id) ?? 0;
         }
@@ -251,26 +256,36 @@ export async function getYearSummary(
   const start = `${year}-01-01`;
   const end = `${year + 1}-01-01`;
 
-  const [{ data: incomeRows }, { data: expenseRows }, { data: debtRows }] =
-    await Promise.all([
-      supabase
-        .from("income")
-        .select("amount")
-        .eq("user_id", userId)
-        .gte("date", start)
-        .lt("date", end),
-      supabase
-        .from("expenses")
-        .select("amount")
-        .eq("user_id", userId)
-        .gte("date", start)
-        .lt("date", end),
-      supabase
-        .from("fixed_actuals")
-        .select("actual_amount")
-        .eq("user_id", userId)
-        .eq("year", year),
-    ]);
+  const [
+    { data: incomeRows },
+    { data: expenseRows },
+    { data: fixedActualRows },
+    { data: debtPaymentRows },
+  ] = await Promise.all([
+    supabase
+      .from("income")
+      .select("amount")
+      .eq("user_id", userId)
+      .gte("date", start)
+      .lt("date", end),
+    supabase
+      .from("expenses")
+      .select("amount")
+      .eq("user_id", userId)
+      .gte("date", start)
+      .lt("date", end),
+    supabase
+      .from("fixed_actuals")
+      .select("actual_amount")
+      .eq("user_id", userId)
+      .eq("year", year),
+    supabase
+      .from("debt_payments")
+      .select("amount")
+      .eq("user_id", userId)
+      .gte("date", start)
+      .lt("date", end),
+  ]);
 
   const incomeActual = (incomeRows ?? []).reduce(
     (s, r) => s + Number(r.amount),
@@ -278,7 +293,8 @@ export async function getYearSummary(
   );
   const expensesActual =
     (expenseRows ?? []).reduce((s, r) => s + Number(r.amount), 0) +
-    (debtRows ?? []).reduce((s, r) => s + Number(r.actual_amount), 0);
+    (fixedActualRows ?? []).reduce((s, r) => s + Number(r.actual_amount), 0) +
+    (debtPaymentRows ?? []).reduce((s, r) => s + Number(r.amount), 0);
 
   return {
     year,

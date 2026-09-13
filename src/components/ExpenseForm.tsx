@@ -2,42 +2,125 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { addExpense } from "@/lib/actions/expenses";
-import type { Account, Category, Subcategory } from "@/lib/database.types";
+import { addCategory, addSubcategory } from "@/lib/actions/categories";
+import type { Account, Category, Subcategory, SubcategoryType } from "@/lib/database.types";
 
 type CategoryWithSubs = Category & { subcategories: Subcategory[] };
 
+const NEW_CATEGORY = "__new_category__";
+const NEW_SUBCATEGORY = "__new_subcategory__";
+
 export default function ExpenseForm({
-  categories,
+  categories: initialCategories,
   accounts,
 }: {
   categories: CategoryWithSubs[];
   accounts: Account[];
 }) {
-  const variableCategories = useMemo(
-    () =>
-      categories
-        .map((c) => ({
-          ...c,
-          subcategories: c.subcategories.filter((s) => s.type === "variable"),
-        }))
-        .filter((c) => c.subcategories.length > 0),
-    [categories]
+  // Only Fixed and Variable are loggable here — Debt has its own payment
+  // flow (Debts page) that reduces the debt's balance, which a generic
+  // expense entry wouldn't do.
+  const [categories, setCategories] = useState(() =>
+    initialCategories.map((c) => ({
+      ...c,
+      subcategories: c.subcategories.filter((s) => s.type !== "debt"),
+    }))
   );
 
-  const [categoryId, setCategoryId] = useState(variableCategories[0]?.id ?? "");
+  const [categoryId, setCategoryId] = useState(categories[0]?.id ?? "");
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [formKey, setFormKey] = useState(0);
 
-  const subcategories =
-    variableCategories.find((c) => c.id === categoryId)?.subcategories ?? [];
+  const [addingCategory, setAddingCategory] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+  const [creatingCategory, startCreatingCategory] = useTransition();
 
-  if (variableCategories.length === 0) {
+  const [subcategoryId, setSubcategoryId] = useState("");
+  const [addingSubcategory, setAddingSubcategory] = useState(false);
+  const [newSubcategoryName, setNewSubcategoryName] = useState("");
+  const [newSubcategoryType, setNewSubcategoryType] = useState<SubcategoryType>("variable");
+  const [creatingSubcategory, startCreatingSubcategory] = useTransition();
+
+  const subcategories = useMemo(
+    () => categories.find((c) => c.id === categoryId)?.subcategories ?? [],
+    [categories, categoryId]
+  );
+
+  const activeSubcategoryId = subcategoryId || subcategories[0]?.id || "";
+
+  function handleCategoryChange(value: string) {
+    if (value === NEW_CATEGORY) {
+      setAddingCategory(true);
+      return;
+    }
+    setCategoryId(value);
+    setSubcategoryId("");
+    setAddingSubcategory(false);
+  }
+
+  function createCategory() {
+    const name = newCategoryName.trim();
+    if (!name) return;
+    startCreatingCategory(async () => {
+      try {
+        const created = await addCategory(name);
+        setCategories((prev) => [...prev, { ...created, subcategories: [] }]);
+        setCategoryId(created.id);
+        setSubcategoryId("");
+        setAddingCategory(false);
+        setAddingSubcategory(true);
+        setNewCategoryName("");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Couldn't create category.");
+      }
+    });
+  }
+
+  function handleSubcategoryChange(value: string) {
+    if (value === NEW_SUBCATEGORY) {
+      setAddingSubcategory(true);
+      return;
+    }
+    setSubcategoryId(value);
+  }
+
+  function createSubcategory() {
+    const name = newSubcategoryName.trim();
+    if (!name || !categoryId) return;
+    startCreatingSubcategory(async () => {
+      try {
+        const created = await addSubcategory(categoryId, name, newSubcategoryType, 0);
+        setCategories((prev) =>
+          prev.map((c) =>
+            c.id === categoryId
+              ? { ...c, subcategories: [...c.subcategories, created] }
+              : c
+          )
+        );
+        setSubcategoryId(created.id);
+        setAddingSubcategory(false);
+        setNewSubcategoryName("");
+      } catch (err) {
+        setError(err instanceof Error ? err.message : "Couldn't create subcategory.");
+      }
+    });
+  }
+
+  if (categories.length === 0 && !addingCategory) {
     return (
-      <p className="text-sm text-[var(--text-muted)]">
-        You don&apos;t have any Variable subcategories yet. Create them in
-        &quot;Categories&quot;.
-      </p>
+      <div className="space-y-3">
+        <p className="text-sm text-[var(--text-muted)]">
+          You don&apos;t have any categories yet.
+        </p>
+        <button
+          type="button"
+          onClick={() => setAddingCategory(true)}
+          className="text-sm font-medium text-[var(--accent)] hover:underline"
+        >
+          + New category
+        </button>
+      </div>
     );
   }
 
@@ -48,6 +131,7 @@ export default function ExpenseForm({
       onSubmit={(e) => {
         e.preventDefault();
         const formData = new FormData(e.currentTarget);
+        formData.set("subcategory_id", activeSubcategoryId);
         setError(null);
         startTransition(async () => {
           try {
@@ -82,32 +166,108 @@ export default function ExpenseForm({
       </div>
 
       <Field label="Category">
-        <select
-          value={categoryId}
-          onChange={(e) => setCategoryId(e.target.value)}
-          className="control w-full px-3 py-2 border border-[var(--border)] bg-[var(--surface)] text-sm"
-        >
-          {variableCategories.map((c) => (
-            <option key={c.id} value={c.id}>
-              {c.name}
-            </option>
-          ))}
-        </select>
+        {addingCategory ? (
+          <div className="flex items-center gap-1.5">
+            <input
+              autoFocus
+              type="text"
+              value={newCategoryName}
+              onChange={(e) => setNewCategoryName(e.target.value)}
+              placeholder="e.g. Health"
+              className="control flex-1 px-3 py-2 border border-[var(--border)] bg-[var(--surface)] text-sm"
+            />
+            <button
+              type="button"
+              disabled={creatingCategory}
+              onClick={createCategory}
+              className="text-xs px-3 py-2 rounded-md bg-[var(--accent)] text-[var(--accent-ink)] disabled:opacity-60"
+            >
+              Add
+            </button>
+            {categories.length > 0 && (
+              <button
+                type="button"
+                onClick={() => setAddingCategory(false)}
+                className="text-xs text-[var(--text-muted)] px-2"
+              >
+                Cancel
+              </button>
+            )}
+          </div>
+        ) : (
+          <select
+            value={categoryId}
+            onChange={(e) => handleCategoryChange(e.target.value)}
+            className="control w-full px-3 py-2 border border-[var(--border)] bg-[var(--surface)] text-sm"
+          >
+            {categories.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.name}
+              </option>
+            ))}
+            <option value={NEW_CATEGORY}>+ New category...</option>
+          </select>
+        )}
       </Field>
 
-      <Field label="Subcategory">
-        <select
-          name="subcategory_id"
-          required
-          className="control w-full px-3 py-2 border border-[var(--border)] bg-[var(--surface)] text-sm"
-        >
-          {subcategories.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.name}
-            </option>
-          ))}
-        </select>
-      </Field>
+      {!addingCategory && (
+        <Field label="Subcategory">
+          {addingSubcategory ? (
+            <div className="space-y-2">
+              <div className="flex items-center gap-1.5">
+                <input
+                  autoFocus
+                  type="text"
+                  value={newSubcategoryName}
+                  onChange={(e) => setNewSubcategoryName(e.target.value)}
+                  placeholder="e.g. Copay"
+                  className="control flex-1 px-3 py-2 border border-[var(--border)] bg-[var(--surface)] text-sm"
+                />
+                <select
+                  value={newSubcategoryType}
+                  onChange={(e) => setNewSubcategoryType(e.target.value as SubcategoryType)}
+                  className="control px-2 py-2 border border-[var(--border)] bg-[var(--surface)] text-sm"
+                >
+                  <option value="variable">Variable</option>
+                  <option value="fixed">Fixed</option>
+                </select>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  disabled={creatingSubcategory}
+                  onClick={createSubcategory}
+                  className="text-xs px-3 py-2 rounded-md bg-[var(--accent)] text-[var(--accent-ink)] disabled:opacity-60"
+                >
+                  Add
+                </button>
+                {subcategories.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => setAddingSubcategory(false)}
+                    className="text-xs text-[var(--text-muted)] px-2"
+                  >
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <select
+              value={activeSubcategoryId}
+              onChange={(e) => handleSubcategoryChange(e.target.value)}
+              className="control w-full px-3 py-2 border border-[var(--border)] bg-[var(--surface)] text-sm"
+            >
+              {subcategories.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name} ({s.type === "fixed" ? "Fixed" : "Variable"})
+                </option>
+              ))}
+              <option value={NEW_SUBCATEGORY}>+ New subcategory...</option>
+            </select>
+          )}
+        </Field>
+      )}
 
       <Field label="Account">
         <select
@@ -136,7 +296,7 @@ export default function ExpenseForm({
 
       <button
         type="submit"
-        disabled={pending}
+        disabled={pending || !activeSubcategoryId || addingCategory || addingSubcategory}
         className="control w-full py-2.5 font-medium text-[var(--accent-ink)] bg-[var(--accent)] hover:opacity-90 disabled:opacity-60 transition"
       >
         {pending ? "Saving..." : "Log expense"}
