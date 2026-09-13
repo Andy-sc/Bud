@@ -221,25 +221,44 @@ export async function getMonthBudget(
 
   if (includeRollover) {
     const prev = shiftMonth(year, month, -1);
-    const prevBudget = await getMonthBudget(supabase, userId, prev.year, prev.month, {
-      includeRollover: false,
-    });
-    const leftover = prevBudget.categories
-      .flatMap((c) => c.subcategories)
-      .filter((s) => s.type !== "debt")
-      .reduce((sum, s) => sum + Math.max(s.planned - s.actual, 0), 0);
+    const { data: firstCategory } = await supabase
+      .from("categories")
+      .select("created_at")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
 
-    if (leftover > 0) {
-      for (const cat of categories) {
-        const bufferSub = cat.subcategories.find((s) => s.is_buffer);
-        if (!bufferSub) continue;
-        bufferSub.planned += leftover;
-        bufferSub.diff = bufferSub.planned - bufferSub.actual;
-        bufferSub.pctUsed = pct(bufferSub.actual, bufferSub.planned);
-        cat.planned += leftover;
-        cat.diff = cat.planned - cat.actual;
-        cat.pctUsed = pct(cat.actual, cat.planned);
-        break;
+    const startedAt = firstCategory ? new Date(firstCategory.created_at) : null;
+    const isPrevTheStartingMonth =
+      startedAt !== null &&
+      startedAt.getFullYear() === prev.year &&
+      startedAt.getMonth() + 1 === prev.month;
+
+    // Skip rolling over from the very first month you used the app — it's
+    // typically an incomplete/partial month (categories were still being
+    // set up), so its "leftover" isn't real underspending.
+    if (!isPrevTheStartingMonth) {
+      const prevBudget = await getMonthBudget(supabase, userId, prev.year, prev.month, {
+        includeRollover: false,
+      });
+      const leftover = prevBudget.categories
+        .flatMap((c) => c.subcategories)
+        .filter((s) => s.type !== "debt")
+        .reduce((sum, s) => sum + Math.max(s.planned - s.actual, 0), 0);
+
+      if (leftover > 0) {
+        for (const cat of categories) {
+          const bufferSub = cat.subcategories.find((s) => s.is_buffer);
+          if (!bufferSub) continue;
+          bufferSub.planned += leftover;
+          bufferSub.diff = bufferSub.planned - bufferSub.actual;
+          bufferSub.pctUsed = pct(bufferSub.actual, bufferSub.planned);
+          cat.planned += leftover;
+          cat.diff = cat.planned - cat.actual;
+          cat.pctUsed = pct(cat.actual, cat.planned);
+          break;
+        }
       }
     }
   }
