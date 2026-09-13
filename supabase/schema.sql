@@ -47,8 +47,14 @@ create table if not exists public.subcategories (
   planned_amount numeric(12,2) not null default 0,
   debt_id uuid references public.debts(id) on delete set null,
   sort_order int not null default 0,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  -- Day of month this Fixed bill is due (1-31), used by the weekly/calendar
+  -- cash-flow view. Null means "no set due date" — it just won't show up
+  -- on the calendar.
+  due_day int check (due_day between 1 and 31)
 );
+
+alter table public.subcategories add column if not exists due_day int check (due_day between 1 and 31);
 
 create table if not exists public.monthly_overrides (
   id uuid primary key default gen_random_uuid(),
