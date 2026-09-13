@@ -47,10 +47,12 @@ export async function pinLogin(
     redirect("/dashboard");
   }
 
-  // Surface real configuration issues (e.g. Supabase's minimum password
-  // length rejecting a short PIN) instead of hiding them behind a generic
-  // "wrong PIN" message.
-  if (signUpError.message.toLowerCase().includes("password")) {
+  // Only "this account already exists" really means "wrong PIN" (someone
+  // typed the wrong one for an account that was already set up). Anything
+  // else is a real configuration problem — surface it instead of hiding
+  // it behind a generic message.
+  const alreadyExists = /already registered|already exists/i.test(signUpError.message);
+  if (!alreadyExists) {
     return { status: "error", message: signUpError.message };
   }
 
