@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getAccountSummary, getMonthCashFlow } from "@/lib/budget";
 import { currentYearMonth } from "@/lib/date";
+import ActivityTabs from "@/components/ActivityTabs";
 import MonthNav from "@/components/MonthNav";
 import CashFlowSection from "@/components/CashFlowSection";
 import UnscheduledBills from "@/components/UnscheduledBills";
@@ -32,6 +33,7 @@ export default async function CalendarPage({
 
   return (
     <div className="space-y-6">
+      <ActivityTabs active="calendar" />
       <h1 className="text-xl font-semibold text-[var(--text-primary)]">Calendar</h1>
 
       <div className="card p-4 md:p-5">

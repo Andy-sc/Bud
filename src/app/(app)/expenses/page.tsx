@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getAccounts, getCategoriesWithSubcategories } from "@/lib/budget";
+import ActivityTabs from "@/components/ActivityTabs";
 import ExpenseForm from "@/components/ExpenseForm";
 import ExpenseHistoryList from "@/components/ExpenseHistoryList";
 import type { Expense } from "@/lib/database.types";
@@ -24,6 +25,7 @@ export default async function ExpensesPage() {
 
   return (
     <div className="space-y-6">
+      <ActivityTabs active="expenses" />
       <h1 className="text-xl font-semibold text-[var(--text-primary)]">
         Log expense
       </h1>

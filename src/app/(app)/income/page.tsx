@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { getAccounts } from "@/lib/budget";
+import ActivityTabs from "@/components/ActivityTabs";
 import IncomeForm from "@/components/IncomeForm";
 import IncomeHistoryList from "@/components/IncomeHistoryList";
 import type { Income } from "@/lib/database.types";
@@ -23,6 +24,7 @@ export default async function IncomePage() {
 
   return (
     <div className="space-y-6">
+      <ActivityTabs active="income" />
       <h1 className="text-xl font-semibold text-[var(--text-primary)]">
         Log income
       </h1>
