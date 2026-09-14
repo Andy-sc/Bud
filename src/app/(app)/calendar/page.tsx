@@ -1,8 +1,9 @@
 import { createClient } from "@/lib/supabase/server";
-import { getMonthCashFlow } from "@/lib/budget";
+import { getAccountSummary, getMonthCashFlow } from "@/lib/budget";
 import { currentYearMonth } from "@/lib/date";
 import MonthNav from "@/components/MonthNav";
 import CashFlowSection from "@/components/CashFlowSection";
+import UnscheduledBills from "@/components/UnscheduledBills";
 
 export default async function CalendarPage({
   searchParams,
@@ -20,7 +21,14 @@ export default async function CalendarPage({
   } = await supabase.auth.getUser();
   const userId = user!.id;
 
-  const cashFlow = await getMonthCashFlow(supabase, userId, year, month);
+  const accountSummary = await getAccountSummary(supabase, userId);
+  const cashFlow = await getMonthCashFlow(
+    supabase,
+    userId,
+    year,
+    month,
+    accountSummary.netCash
+  );
 
   return (
     <div className="space-y-6">
@@ -29,6 +37,8 @@ export default async function CalendarPage({
       <div className="card p-4 md:p-5">
         <MonthNav year={year} month={month} basePath="/calendar" />
       </div>
+
+      <UnscheduledBills bills={cashFlow.unscheduled} />
 
       <CashFlowSection data={cashFlow} />
     </div>

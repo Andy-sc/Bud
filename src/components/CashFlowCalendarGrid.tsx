@@ -23,10 +23,18 @@ export default function CashFlowCalendarGrid({ data }: { data: MonthCashFlow }) 
         {data.days.map((d) => {
           const hasIncome = d.income.length > 0;
           const hasBills = d.bills.length > 0;
+          const overBudget = d.runningBalance < 0;
           return (
             <div
               key={d.day}
-              className="min-h-16 rounded-md border border-[var(--border)] bg-[var(--surface-2)] p-1 text-left"
+              className="min-h-16 rounded-md border p-1 text-left"
+              style={{
+                borderColor: overBudget ? "var(--critical)" : "var(--border)",
+                background: overBudget
+                  ? "color-mix(in srgb, var(--critical) 12%, var(--surface-2))"
+                  : "var(--surface-2)",
+              }}
+              title={`Balance after this day: ${money(d.runningBalance)}`}
             >
               <p className="text-xs text-[var(--text-muted)] tabular-nums">{d.day}</p>
               <div className="space-y-0.5 mt-0.5">

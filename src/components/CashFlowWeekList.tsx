@@ -8,10 +8,13 @@ export default function CashFlowWeekList({ data }: { data: MonthCashFlow }) {
       {data.weeks.map((week) => {
         const totalIncome = week.incomeActual + week.incomeProjected;
         const over = week.freeToSpend < 0;
+        const endingBalance = data.days[week.endDay - 1]?.runningBalance ?? 0;
+        const endingOverBudget = endingBalance < 0;
         return (
           <div
             key={week.label}
-            className="border border-[var(--border)] rounded-[var(--radius-control)] p-4 space-y-2"
+            className="border rounded-[var(--radius-control)] p-4 space-y-2"
+            style={{ borderColor: endingOverBudget ? "var(--critical)" : "var(--border)" }}
           >
             <div className="flex items-center justify-between">
               <p className="font-medium text-[var(--text-primary)]">Days {week.label}</p>
@@ -23,6 +26,13 @@ export default function CashFlowWeekList({ data }: { data: MonthCashFlow }) {
                 {money(Math.abs(week.freeToSpend))} free
               </p>
             </div>
+
+            <p
+              className="text-xs tabular-nums"
+              style={{ color: endingOverBudget ? "var(--critical)" : "var(--text-muted)" }}
+            >
+              Balance by day {week.endDay}: {money(endingBalance)}
+            </p>
 
             <div className="flex items-center justify-between text-xs text-[var(--text-secondary)]">
               <span className="tabular-nums">

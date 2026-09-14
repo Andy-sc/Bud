@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { updateSubcategoryDueDay } from "@/lib/actions/categories";
 
 export default function DueDayEditor({
@@ -10,6 +11,7 @@ export default function DueDayEditor({
   subcategoryId: string;
   day: number;
 }) {
+  const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [value, setValue] = useState(String(day));
   const [pending, startTransition] = useTransition();
@@ -37,6 +39,7 @@ export default function DueDayEditor({
           startTransition(async () => {
             await updateSubcategoryDueDay(subcategoryId, newDay);
             setEditing(false);
+            router.refresh();
           });
         }
       }}

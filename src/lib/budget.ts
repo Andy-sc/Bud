@@ -509,6 +509,17 @@ export interface CashFlowDay {
   date: string;
   income: CashFlowIncomeEvent[];
   bills: CashFlowBillEvent[];
+  // Running balance through the end of this day: starting balance + every
+  // income event so far this month - every bill so far this month. Goes
+  // negative the moment scheduled bills outpace money actually available.
+  runningBalance: number;
+}
+
+export interface UnscheduledBill {
+  subcategoryId: string;
+  name: string;
+  categoryName: string;
+  amount: number;
 }
 
 export interface CashFlowWeek {
@@ -527,6 +538,7 @@ export interface MonthCashFlow {
   month: number;
   days: CashFlowDay[];
   weeks: CashFlowWeek[];
+  unscheduled: UnscheduledBill[];
 }
 
 function daysInMonth(year: number, month: number) {
@@ -601,7 +613,8 @@ export async function getMonthCashFlow(
   supabase: SupabaseClient,
   userId: string,
   year: number,
-  month: number
+  month: number,
+  startingBalance = 0
 ): Promise<MonthCashFlow> {
   const { start, end } = monthRange(year, month);
   const rangeStart = new Date(`${start}T00:00:00`);
@@ -641,6 +654,7 @@ export async function getMonthCashFlow(
     date: `${start.slice(0, 8)}${String(i + 1).padStart(2, "0")}`,
     income: [],
     bills: [],
+    runningBalance: startingBalance,
   }));
 
   for (const row of (incomeInMonth ?? []) as Income[]) {
@@ -663,10 +677,20 @@ export async function getMonthCashFlow(
     }
   }
 
+  const unscheduled: UnscheduledBill[] = [];
+
   for (const cat of categories) {
     for (const sub of cat.subcategories) {
-      if (sub.type === "fixed" && sub.due_day && sub.due_day <= numDays) {
+      if (sub.type !== "fixed") continue;
+      if (sub.due_day && sub.due_day <= numDays) {
         days[sub.due_day - 1].bills.push({
+          subcategoryId: sub.id,
+          name: sub.name,
+          categoryName: cat.name,
+          amount: Number(sub.planned_amount),
+        });
+      } else if (!sub.due_day && Number(sub.planned_amount) > 0) {
+        unscheduled.push({
           subcategoryId: sub.id,
           name: sub.name,
           categoryName: cat.name,
@@ -674,6 +698,15 @@ export async function getMonthCashFlow(
         });
       }
     }
+  }
+
+  // Running balance: starting balance, plus every income event, minus
+  // every bill, walked forward day by day through the month.
+  let runningBalance = startingBalance;
+  for (const d of days) {
+    for (const ev of d.income) runningBalance += ev.amount;
+    for (const b of d.bills) runningBalance -= b.amount;
+    d.runningBalance = runningBalance;
   }
 
   const weeks: CashFlowWeek[] = [];
@@ -707,7 +740,7 @@ export async function getMonthCashFlow(
     });
   }
 
-  return { year, month, days, weeks };
+  return { year, month, days, weeks, unscheduled };
 }
 
 export interface AccountBalance extends Account {
