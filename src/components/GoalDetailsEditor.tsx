@@ -1,26 +1,23 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { updateDebtDetails } from "@/lib/actions/debts";
+import { updateGoalDetails } from "@/lib/actions/goals";
 
-export default function DebtDetailsEditor({
-  debtId,
+export default function GoalDetailsEditor({
+  goalId,
   name,
-  owedTo,
-  originalAmount,
-  interestRate,
+  targetAmount,
+  targetDate,
 }: {
-  debtId: string;
+  goalId: string;
   name: string;
-  owedTo: string | null;
-  originalAmount: number;
-  interestRate: number;
+  targetAmount: number;
+  targetDate: string | null;
 }) {
   const [editing, setEditing] = useState(false);
-  const [debtName, setDebtName] = useState(name);
-  const [owed, setOwed] = useState(owedTo ?? "");
-  const [original, setOriginal] = useState(String(originalAmount));
-  const [rate, setRate] = useState(String(interestRate));
+  const [goalName, setGoalName] = useState(name);
+  const [target, setTarget] = useState(String(targetAmount));
+  const [date, setDate] = useState(targetDate ?? "");
   const [pending, startTransition] = useTransition();
 
   if (!editing) {
@@ -37,57 +34,47 @@ export default function DebtDetailsEditor({
 
   return (
     <form
-      className="grid grid-cols-3 gap-2 pt-1"
+      className="grid grid-cols-2 gap-2 pt-1"
       onSubmit={(e) => {
         e.preventDefault();
         startTransition(async () => {
-          await updateDebtDetails(debtId, {
-            name: debtName.trim() || name,
-            owed_to: owed,
-            original_amount: parseFloat(original) || 0,
-            interest_rate: parseFloat(rate) || 0,
+          await updateGoalDetails(goalId, {
+            name: goalName.trim() || name,
+            targetAmount: parseFloat(target) || 0,
+            targetDate: date || null,
           });
           setEditing(false);
         });
       }}
     >
-      <label className="text-xs text-[var(--text-muted)] col-span-3">
+      <label className="text-xs text-[var(--text-muted)] col-span-2">
         Name
         <input
-          value={debtName}
-          onChange={(e) => setDebtName(e.target.value)}
+          value={goalName}
+          onChange={(e) => setGoalName(e.target.value)}
           className="control w-full mt-0.5 px-2 py-1 text-sm border border-[var(--border)] bg-[var(--surface)]"
         />
       </label>
       <label className="text-xs text-[var(--text-muted)]">
-        Owed to
-        <input
-          value={owed}
-          onChange={(e) => setOwed(e.target.value)}
-          className="control w-full mt-0.5 px-2 py-1 text-sm border border-[var(--border)] bg-[var(--surface)]"
-        />
-      </label>
-      <label className="text-xs text-[var(--text-muted)]">
-        Original amount
+        Target amount
         <input
           type="number"
           step="0.01"
-          value={original}
-          onChange={(e) => setOriginal(e.target.value)}
+          value={target}
+          onChange={(e) => setTarget(e.target.value)}
           className="control w-full mt-0.5 px-2 py-1 text-sm border border-[var(--border)] bg-[var(--surface)]"
         />
       </label>
       <label className="text-xs text-[var(--text-muted)]">
-        Interest rate (%)
+        Target date
         <input
-          type="number"
-          step="0.01"
-          value={rate}
-          onChange={(e) => setRate(e.target.value)}
+          type="date"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
           className="control w-full mt-0.5 px-2 py-1 text-sm border border-[var(--border)] bg-[var(--surface)]"
         />
       </label>
-      <div className="col-span-3 flex gap-2">
+      <div className="col-span-2 flex gap-2">
         <button
           type="submit"
           disabled={pending}

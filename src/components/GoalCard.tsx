@@ -6,6 +6,7 @@ import { computeGoalProgress } from "@/lib/budget";
 import { money } from "@/lib/format";
 import type { Goal } from "@/lib/database.types";
 import { CloseIcon, CheckCircleIcon } from "@/components/icons";
+import GoalDetailsEditor from "@/components/GoalDetailsEditor";
 
 export default function GoalCard({ goal }: { goal: Goal }) {
   const progress = computeGoalProgress(goal);
@@ -19,8 +20,13 @@ export default function GoalCard({ goal }: { goal: Goal }) {
         <h3 className="font-semibold text-[var(--text-primary)]">{goal.name}</h3>
         <button
           type="button"
-          onClick={() => startTransition(() => deleteGoal(goal.id))}
-          className="text-[var(--text-muted)] hover:text-[var(--critical)]"
+          disabled={pending}
+          onClick={() => {
+            if (window.confirm(`Delete the goal "${goal.name}"? This can't be undone.`)) {
+              startTransition(() => deleteGoal(goal.id));
+            }
+          }}
+          className="text-[var(--text-muted)] hover:text-[var(--critical)] disabled:opacity-60"
           aria-label="Delete goal"
         >
           <CloseIcon className="w-4 h-4" />
@@ -103,6 +109,15 @@ export default function GoalCard({ goal }: { goal: Goal }) {
       ) : (
         <p className="text-sm text-[var(--text-muted)]">No target date set.</p>
       )}
+
+      <div className="border-t border-[var(--border)] pt-3">
+        <GoalDetailsEditor
+          goalId={goal.id}
+          name={goal.name}
+          targetAmount={goal.target_amount}
+          targetDate={goal.target_date}
+        />
+      </div>
     </div>
   );
 }

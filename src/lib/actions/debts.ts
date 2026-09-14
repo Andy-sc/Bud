@@ -101,11 +101,48 @@ export async function deleteDebtPayment(id: string) {
 
 export async function updateDebtDetails(
   debtId: string,
-  fields: { owed_to?: string; original_amount?: number; interest_rate?: number }
+  fields: { name?: string; owed_to?: string; original_amount?: number; interest_rate?: number }
 ) {
   const supabase = await createClient();
   const { error } = await supabase.from("debts").update(fields).eq("id", debtId);
   if (error) throw new Error(error.message);
+
+  // Keep the linked "debt" subcategory's name in sync — that's what the
+  // Categories/Dashboard views actually display.
+  if (fields.name) {
+    await supabase
+      .from("subcategories")
+      .update({ name: fields.name })
+      .eq("debt_id", debtId);
+  }
+
+  revalidatePath("/debts");
+  revalidatePath("/dashboard");
+}
+
+export async function deleteDebt(debtId: string) {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  // The subcategory doesn't cascade-delete with the debt (its FK is
+  // "on delete set null"), so remove it explicitly — otherwise it'd stick
+  // around as an orphaned "debt" row with nothing left to track.
+  await supabase
+    .from("subcategories")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("debt_id", debtId);
+
+  const { error } = await supabase
+    .from("debts")
+    .delete()
+    .eq("id", debtId)
+    .eq("user_id", user.id);
+  if (error) throw new Error(error.message);
+
   revalidatePath("/debts");
   revalidatePath("/dashboard");
 }

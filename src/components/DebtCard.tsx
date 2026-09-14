@@ -1,10 +1,15 @@
+"use client";
+
+import { useTransition } from "react";
 import ProgressBar from "@/components/ProgressBar";
 import DebtPaymentForm from "@/components/DebtPaymentForm";
 import DebtPayoffEditor from "@/components/DebtPayoffEditor";
 import DebtDetailsEditor from "@/components/DebtDetailsEditor";
+import { deleteDebt } from "@/lib/actions/debts";
 import { money, pct } from "@/lib/format";
 import type { DebtComputed } from "@/lib/budget";
 import type { Account } from "@/lib/database.types";
+import { CloseIcon } from "@/components/icons";
 
 export default function DebtCard({
   debt,
@@ -13,6 +18,8 @@ export default function DebtCard({
   debt: DebtComputed;
   accounts: Account[];
 }) {
+  const [pending, startTransition] = useTransition();
+
   return (
     <div className="card p-5 space-y-3">
       <div className="flex items-start justify-between">
@@ -22,9 +29,28 @@ export default function DebtCard({
             <p className="text-xs text-[var(--text-muted)]">Owed to {debt.owed_to}</p>
           )}
         </div>
-        <span className="text-xs font-medium text-[var(--text-muted)] tabular-nums">
-          {pct(debt.pctPaid)} paid
-        </span>
+        <div className="flex items-center gap-2 shrink-0">
+          <span className="text-xs font-medium text-[var(--text-muted)] tabular-nums">
+            {pct(debt.pctPaid)} paid
+          </span>
+          <button
+            type="button"
+            disabled={pending}
+            onClick={() => {
+              if (
+                window.confirm(
+                  `Delete "${debt.name}" and its whole payment history? This can't be undone.`
+                )
+              ) {
+                startTransition(() => deleteDebt(debt.id));
+              }
+            }}
+            className="text-[var(--text-muted)] hover:text-[var(--critical)] disabled:opacity-60"
+            aria-label="Delete debt"
+          >
+            <CloseIcon className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
       <div>
@@ -55,6 +81,7 @@ export default function DebtCard({
         <DebtPaymentForm debtId={debt.id} accounts={accounts} />
         <DebtDetailsEditor
           debtId={debt.id}
+          name={debt.name}
           owedTo={debt.owed_to}
           originalAmount={debt.original_amount}
           interestRate={debt.interest_rate}

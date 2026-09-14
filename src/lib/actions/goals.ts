@@ -40,6 +40,23 @@ export async function updateGoalSaved(id: string, savedSoFar: number) {
   revalidatePath("/goals");
 }
 
+export async function updateGoalDetails(
+  id: string,
+  fields: { name: string; targetAmount: number; targetDate: string | null }
+) {
+  const { supabase } = await currentUserId();
+  const { error } = await supabase
+    .from("goals")
+    .update({
+      name: fields.name,
+      target_amount: fields.targetAmount,
+      target_date: fields.targetDate,
+    })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/goals");
+}
+
 export async function deleteGoal(id: string) {
   const { supabase } = await currentUserId();
   const { error } = await supabase.from("goals").delete().eq("id", id);
