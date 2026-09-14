@@ -11,13 +11,27 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   if (!user) redirect("/login");
 
-  const { data: settings } = await supabase
+  const { data: settings, error: settingsError } = await supabase
     .from("user_settings")
     .select("onboarded")
     .eq("user_id", user.id)
     .maybeSingle();
 
-  if (!settings?.onboarded) {
+  // Falls back to the old "do you have any categories" check if the
+  // `onboarded` column isn't there yet (schema.sql hasn't been re-run on
+  // this project) — otherwise this would wrongly show Onboarding to
+  // every existing account.
+  const needsOnboarding = settingsError
+    ? await (async () => {
+        const { count } = await supabase
+          .from("categories")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", user.id);
+        return !count;
+      })()
+    : !settings?.onboarded;
+
+  if (needsOnboarding) {
     return <Onboarding />;
   }
 

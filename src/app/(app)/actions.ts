@@ -34,10 +34,12 @@ export async function skipOnboarding() {
   } = await supabase.auth.getUser();
   if (!user) throw new Error("Not authenticated");
 
-  const { error } = await supabase
+  // Ignored on purpose (not awaited-and-thrown): if the `onboarded`
+  // column isn't there yet (schema.sql hasn't been re-run), this is a
+  // no-op and the layout falls back to its old categories-based check.
+  await supabase
     .from("user_settings")
     .upsert({ user_id: user.id, onboarded: true }, { onConflict: "user_id" });
-  if (error) throw new Error(error.message);
 
   revalidatePath("/", "layout");
   redirect("/settings");
