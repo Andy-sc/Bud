@@ -27,7 +27,7 @@ export default function BudgetRemainingBanner({
     <div className="card p-5 md:p-6 flex items-center justify-between gap-4 flex-wrap">
       <div>
         <p className="text-sm text-[var(--text-secondary)]">
-          {over ? "Spent more than you've received by" : "Available to spend"}
+          {over ? "Spent more than you've received by" : "Current balance"}
         </p>
         <p
           className="text-2xl md:text-3xl font-semibold tabular-nums"

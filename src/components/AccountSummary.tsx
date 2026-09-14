@@ -17,7 +17,7 @@ export default function AccountSummary({ data }: { data: AccountSummaryData }) {
   return (
     <div className="card p-5 space-y-4">
       <div>
-        <p className="text-xs text-[var(--text-muted)]">Net cash</p>
+        <p className="text-xs text-[var(--text-muted)]">Balance across accounts</p>
         <p
           className="text-2xl font-semibold tabular-nums"
           style={{ color: data.netCash >= 0 ? "var(--good)" : "var(--critical)" }}
