@@ -162,6 +162,38 @@ completamente separado del tuyo y del de Jose.
 
 ---
 
+## Notificaciones de facturas (opcional)
+
+Si activas esto, cada quien puede prender "Turn on bill reminders" desde
+**Categories → Notifications**, y el día antes de que venza una factura
+Fixed (la que le pusiste día en el Calendario), le llega una notificación
+push al navegador — sin apps externas, sin correo, gratis.
+
+1. Ve a Supabase → **SQL Editor** y vuelve a correr `supabase/schema.sql`
+   completo (crea la tabla `push_subscriptions` que le falta).
+2. Ve a Supabase → **Project Settings** → **API** → copia la
+   **service_role key** (la secreta, no la publishable — nunca la
+   compartas ni la pongas en el código, solo en Vercel como variable de
+   entorno).
+3. En Vercel → tu proyecto → **Settings** → **Environment Variables**,
+   agrega estas 4:
+   ```
+   NEXT_PUBLIC_VAPID_PUBLIC_KEY=BEUuc_vJxzmWWW3UfNgZ12BZTG3s-vhyWQ833VMMFDxO4jlZHJPDmBB-FpxI-dGle9IiSYM0XSDPQEVpTXQRZyA
+   VAPID_PRIVATE_KEY=qE7kcOklA0n3KO8YVyi72dCKhptTHBioYGUX8IO3nlo
+   SUPABASE_SERVICE_ROLE_KEY=(la que copiaste en el paso 2)
+   CRON_SECRET=de627b2832b12a99fc71b4f13ba60c887d66f95033bff16a
+   ```
+   Las dos claves VAPID y el CRON_SECRET ya están generadas y listas para
+   pegar — son únicas para tu proyecto, no hay que crearlas en ningún
+   lado externo.
+4. Dale **Redeploy**. Vercel detecta el archivo `vercel.json` del repo
+   solo y activa el cron (le manda una revisión diaria a la 1 de la
+   tarde UTC — ajústalo en `vercel.json` si quieres otra hora).
+5. Ya cada quien puede entrar a **Categories → Notifications** y darle
+   **"Turn on bill reminders"** (el navegador va a pedir permiso).
+
+---
+
 ## Sobre los planes gratuitos (para que no te lleves sorpresas)
 
 - **Supabase Free**: 500 MB de base de datos y 5 GB de transferencia al

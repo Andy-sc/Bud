@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getAccounts, getCategoriesWithSubcategories } from "@/lib/budget";
 import CategoryManager from "@/components/CategoryManager";
 import AccountManager from "@/components/AccountManager";
+import NotificationSettings from "@/components/NotificationSettings";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -38,6 +39,13 @@ export default async function SettingsPage() {
           payments.
         </p>
         <AccountManager accounts={accounts} />
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-1">
+          Notifications
+        </h2>
+        <NotificationSettings />
       </div>
     </div>
   );

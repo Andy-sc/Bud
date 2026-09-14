@@ -135,6 +135,15 @@ export interface Goal {
   created_at: string;
 }
 
+export interface PushSubscriptionRow {
+  id: string;
+  user_id: string;
+  endpoint: string;
+  p256dh: string;
+  auth: string;
+  created_at: string;
+}
+
 // Minimal Database type so @supabase/ssr's generics are satisfied.
 // (Not a full generated schema — good enough since we type query results ourselves.)
 // eslint-disable-next-line @typescript-eslint/no-explicit-any

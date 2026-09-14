@@ -159,6 +159,19 @@ create table if not exists public.goals (
   created_at timestamptz not null default now()
 );
 
+-- One row per browser/device that's enabled push notifications. A user
+-- can have several (phone + laptop). Sent to by the daily bill-reminder
+-- cron job using the Web Push standard (no third-party notification
+-- service — just VAPID keys and each browser's own push endpoint).
+create table if not exists public.push_subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  endpoint text not null unique,
+  p256dh text not null,
+  auth text not null,
+  created_at timestamptz not null default now()
+);
+
 -- One row per login profile shown on the login screen ("Vale", "Jose",
 -- anyone else who self-adds one later). id is the same as the matching
 -- auth.users id — the PIN is that account's password. email is an
@@ -199,6 +212,7 @@ alter table public.debt_payments enable row level security;
 alter table public.user_settings enable row level security;
 alter table public.profiles enable row level security;
 alter table public.goals enable row level security;
+alter table public.push_subscriptions enable row level security;
 
 do $$
 declare
@@ -206,7 +220,8 @@ declare
 begin
   for t in select unnest(array[
     'accounts','categories','subcategories','debts','monthly_overrides',
-    'fixed_actuals','expenses','income','income_plan','debt_payments','goals'
+    'fixed_actuals','expenses','income','income_plan','debt_payments','goals',
+    'push_subscriptions'
   ])
   loop
     execute format('drop policy if exists "owner_all" on public.%I;', t);
