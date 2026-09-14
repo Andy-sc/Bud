@@ -15,7 +15,6 @@ import {
   DebtsIcon,
   SettingsIcon,
   PlusIcon,
-  MoreIcon,
   SignOutIcon,
 } from "@/components/icons";
 
@@ -30,10 +29,14 @@ const LINKS = [
   { href: "/debts", label: "Debts", Icon: DebtsIcon },
 ];
 
-const ACTIVITY_PATHS = ["/expenses", "/income", "/calendar"];
-const MORE_LINKS = [
-  { href: "/goals", label: "Goals", Icon: GoalsIcon },
+// Mobile bottom nav: Home, Calendar, + (add), Debts, Goals.
+const MOBILE_LINKS = [
+  { href: "/dashboard", label: "Home", Icon: OverviewIcon },
+  { href: "/calendar", label: "Calendar", Icon: CalendarIcon },
+];
+const MOBILE_LINKS_RIGHT = [
   { href: "/debts", label: "Debts", Icon: DebtsIcon },
+  { href: "/goals", label: "Goals", Icon: GoalsIcon },
 ];
 
 function tabClass(active: boolean) {
@@ -44,10 +47,7 @@ function tabClass(active: boolean) {
 
 export default function Nav({ email }: { email?: string }) {
   const pathname = usePathname();
-  const [openMenu, setOpenMenu] = useState<"add" | "more" | null>(null);
-
-  const isActivity = ACTIVITY_PATHS.some((p) => pathname.startsWith(p));
-  const isMore = MORE_LINKS.some((l) => pathname.startsWith(l.href));
+  const [addOpen, setAddOpen] = useState(false);
 
   return (
     <>
@@ -110,29 +110,29 @@ export default function Nav({ email }: { email?: string }) {
         </div>
       </header>
 
-      {/* Mobile bottom nav: Home / Activity / + / More */}
+      {/* Mobile bottom nav: Home / Calendar / + / Debts / Goals */}
       <nav className="md:hidden fixed bottom-0 inset-x-0 z-20">
-        {openMenu && (
+        {addOpen && (
           <button
             type="button"
             aria-label="Close menu"
             className="fixed inset-0 z-10 bg-transparent"
-            onClick={() => setOpenMenu(null)}
+            onClick={() => setAddOpen(false)}
           />
         )}
 
-        {openMenu === "add" && (
+        {addOpen && (
           <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-3 z-20 flex flex-col gap-2 items-center">
             <Link
               href="/income"
-              onClick={() => setOpenMenu(null)}
+              onClick={() => setAddOpen(false)}
               className="control px-4 py-2.5 rounded-full bg-[var(--surface)] border border-[var(--border)] text-sm font-medium text-[var(--text-primary)] shadow-sm whitespace-nowrap"
             >
               Add income
             </Link>
             <Link
               href="/expenses"
-              onClick={() => setOpenMenu(null)}
+              onClick={() => setAddOpen(false)}
               className="control px-4 py-2.5 rounded-full bg-[var(--surface)] border border-[var(--border)] text-sm font-medium text-[var(--text-primary)] shadow-sm whitespace-nowrap"
             >
               Add expense
@@ -140,37 +140,18 @@ export default function Nav({ email }: { email?: string }) {
           </div>
         )}
 
-        {openMenu === "more" && (
-          <div className="absolute bottom-full right-3 mb-3 z-20 flex flex-col gap-0.5 bg-[var(--surface)] border border-[var(--border)] rounded-2xl p-1.5 shadow-sm min-w-[150px]">
-            {MORE_LINKS.map(({ href, label, Icon }) => (
-              <Link
-                key={href}
-                href={href}
-                onClick={() => setOpenMenu(null)}
-                className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm text-[var(--text-secondary)] hover:bg-[var(--surface-2)] hover:text-[var(--text-primary)]"
-              >
-                <Icon className="w-4 h-4" />
-                {label}
-              </Link>
-            ))}
-          </div>
-        )}
-
         <div className="relative z-20 flex items-center bg-[var(--surface)] border-t border-[var(--border)] pb-[env(safe-area-inset-bottom)]">
-          <Link href="/dashboard" className={tabClass(pathname.startsWith("/dashboard"))}>
-            <OverviewIcon className="w-5 h-5" />
-            Home
-          </Link>
-
-          <Link href="/expenses" className={tabClass(isActivity)}>
-            <ExpensesIcon className="w-5 h-5" />
-            Activity
-          </Link>
+          {MOBILE_LINKS.map(({ href, label, Icon }) => (
+            <Link key={href} href={href} className={tabClass(pathname.startsWith(href))}>
+              <Icon className="w-5 h-5" />
+              {label}
+            </Link>
+          ))}
 
           <button
             type="button"
             aria-label="Add expense or income"
-            onClick={() => setOpenMenu(openMenu === "add" ? null : "add")}
+            onClick={() => setAddOpen((v) => !v)}
             className="flex-1 flex flex-col items-center justify-center -mt-5"
           >
             <span className="w-12 h-12 rounded-full bg-[var(--accent)] text-[var(--accent-ink)] flex items-center justify-center shadow-md">
@@ -178,15 +159,12 @@ export default function Nav({ email }: { email?: string }) {
             </span>
           </button>
 
-          <button
-            type="button"
-            aria-label="More"
-            onClick={() => setOpenMenu(openMenu === "more" ? null : "more")}
-            className={tabClass(isMore || openMenu === "more")}
-          >
-            <MoreIcon className="w-5 h-5" />
-            More
-          </button>
+          {MOBILE_LINKS_RIGHT.map(({ href, label, Icon }) => (
+            <Link key={href} href={href} className={tabClass(pathname.startsWith(href))}>
+              <Icon className="w-5 h-5" />
+              {label}
+            </Link>
+          ))}
         </div>
       </nav>
     </>
