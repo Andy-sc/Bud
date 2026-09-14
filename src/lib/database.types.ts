@@ -133,6 +133,7 @@ export interface Goal {
   target_date: string | null;
   saved_so_far: number;
   created_at: string;
+  notified_reached: boolean;
 }
 
 export interface PushSubscriptionRow {
@@ -142,6 +143,17 @@ export interface PushSubscriptionRow {
   p256dh: string;
   auth: string;
   created_at: string;
+}
+
+export interface NotificationPreferences {
+  user_id: string;
+  bill_reminders: boolean;
+  next_income: boolean;
+  daily_balance: boolean;
+  category_limit: boolean;
+  low_balance: boolean;
+  goal_reached: boolean;
+  updated_at: string;
 }
 
 // Minimal Database type so @supabase/ssr's generics are satisfied.

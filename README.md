@@ -162,15 +162,29 @@ completamente separado del tuyo y del de Jose.
 
 ---
 
-## Notificaciones de facturas (opcional)
+## Notificaciones (opcional)
 
-Si activas esto, cada quien puede prender "Turn on bill reminders" desde
-**Categories → Notifications**, y el día antes de que venza una factura
-Fixed (la que le pusiste día en el Calendario), le llega una notificación
-push al navegador — sin apps externas, sin correo, gratis.
+Si activas esto, cada quien puede prender las notificaciones desde
+**Settings → Notifications** y elegir cuáles quiere recibir — todas
+llegan como notificación push al navegador, sin apps externas, sin
+correo, gratis:
+
+- **Upcoming bills** — el día antes de que venza una factura Fixed (la
+  que le pusiste día en el Calendario).
+- **Next income** — el día antes de que caiga un ingreso recurrente.
+- **Low balance warning** — cuando el balance across accounts se pone
+  negativo.
+- **Category near its limit** — cuando una categoría llega al 80% de lo
+  planeado ese mes.
+- **Daily balance** — un resumen diario del balance across accounts.
+- **Goal reached** — cuando terminas de llenar una de tus metas.
+
+También desde **Settings → Profile** cada quien puede cambiar su nombre
+(el que aparece en la pantalla de login) y su PIN, sin tocar código.
 
 1. Ve a Supabase → **SQL Editor** y vuelve a correr `supabase/schema.sql`
-   completo (crea la tabla `push_subscriptions` que le falta).
+   completo (crea las tablas nuevas que le faltan: `push_subscriptions`,
+   `notification_preferences`, `category_limit_alerts`).
 2. Ve a Supabase → **Project Settings** → **API** → copia la
    **service_role key** (la secreta, no la publishable — nunca la
    compartas ni la pongas en el código, solo en Vercel como variable de
@@ -189,8 +203,9 @@ push al navegador — sin apps externas, sin correo, gratis.
 4. Dale **Redeploy**. Vercel detecta el archivo `vercel.json` del repo
    solo y activa el cron (le manda una revisión diaria a la 1 de la
    tarde UTC — ajústalo en `vercel.json` si quieres otra hora).
-5. Ya cada quien puede entrar a **Categories → Notifications** y darle
-   **"Turn on bill reminders"** (el navegador va a pedir permiso).
+5. Ya cada quien puede entrar a **Settings → Notifications**, darle
+   **"Turn on notifications"** (el navegador va a pedir permiso), y
+   marcar cuáles de la lista quiere recibir.
 
 ---
 

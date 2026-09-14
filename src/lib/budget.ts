@@ -7,6 +7,7 @@ import type {
   Debt,
   Goal,
   Income,
+  NotificationPreferences,
   Subcategory,
 } from "@/lib/database.types";
 
@@ -568,7 +569,7 @@ function toISODate(d: Date) {
  * date that already has a matching actual entry (same source + date) so a
  * paycheck already logged isn't double-counted as also "expected".
  */
-function projectRecurringIncome(
+export function projectRecurringIncome(
   recurringRows: Income[],
   actualDatesBySource: Set<string>,
   rangeStart: Date,
@@ -885,4 +886,30 @@ export function computeGoalProgress(goal: Goal, from: Date = new Date()): GoalPr
     pctSaved,
     onTrack: remaining === 0 || monthsLeft > 0,
   };
+}
+
+export const DEFAULT_NOTIFICATION_PREFS: Omit<
+  NotificationPreferences,
+  "user_id" | "updated_at"
+> = {
+  bill_reminders: true,
+  next_income: true,
+  daily_balance: false,
+  category_limit: true,
+  low_balance: true,
+  goal_reached: true,
+};
+
+export async function getNotificationPreferences(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<NotificationPreferences> {
+  const { data } = await supabase
+    .from("notification_preferences")
+    .select("*")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (data) return data as NotificationPreferences;
+  return { user_id: userId, updated_at: "", ...DEFAULT_NOTIFICATION_PREFS };
 }

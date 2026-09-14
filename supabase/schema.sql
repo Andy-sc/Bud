@@ -156,8 +156,14 @@ create table if not exists public.goals (
   target_amount numeric(12,2) not null,
   target_date date,
   saved_so_far numeric(12,2) not null default 0,
-  created_at timestamptz not null default now()
+  created_at timestamptz not null default now(),
+  -- Set once the "goal reached" push notification has fired for this goal,
+  -- so it doesn't re-fire every day. Reset to false if saved_so_far drops
+  -- back under the target, so a later re-reach notifies again.
+  notified_reached boolean not null default false
 );
+
+alter table public.goals add column if not exists notified_reached boolean not null default false;
 
 -- One row per browser/device that's enabled push notifications. A user
 -- can have several (phone + laptop). Sent to by the daily bill-reminder
@@ -170,6 +176,33 @@ create table if not exists public.push_subscriptions (
   p256dh text not null,
   auth text not null,
   created_at timestamptz not null default now()
+);
+
+-- Per-profile toggles for which push notifications to receive. One row
+-- per user; missing row means "use the defaults below" (the app treats
+-- a missing row the same as one with these column defaults).
+create table if not exists public.notification_preferences (
+  user_id uuid primary key references auth.users(id) on delete cascade,
+  bill_reminders boolean not null default true,
+  next_income boolean not null default true,
+  daily_balance boolean not null default false,
+  category_limit boolean not null default true,
+  low_balance boolean not null default true,
+  goal_reached boolean not null default true,
+  updated_at timestamptz not null default now()
+);
+
+-- Tracks which (subcategory, month) "category near its limit" alerts have
+-- already been sent, so the cron doesn't re-notify every single day once
+-- a category crosses 80%.
+create table if not exists public.category_limit_alerts (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  subcategory_id uuid not null references public.subcategories(id) on delete cascade,
+  year int not null,
+  month int not null,
+  created_at timestamptz not null default now(),
+  unique (subcategory_id, year, month)
 );
 
 -- One row per login profile shown on the login screen ("Vale", "Jose",
@@ -213,6 +246,8 @@ alter table public.user_settings enable row level security;
 alter table public.profiles enable row level security;
 alter table public.goals enable row level security;
 alter table public.push_subscriptions enable row level security;
+alter table public.notification_preferences enable row level security;
+alter table public.category_limit_alerts enable row level security;
 
 do $$
 declare
@@ -221,7 +256,7 @@ begin
   for t in select unnest(array[
     'accounts','categories','subcategories','debts','monthly_overrides',
     'fixed_actuals','expenses','income','income_plan','debt_payments','goals',
-    'push_subscriptions'
+    'push_subscriptions','notification_preferences','category_limit_alerts'
   ])
   loop
     execute format('drop policy if exists "owner_all" on public.%I;', t);
@@ -237,17 +272,23 @@ create policy "owner_all" on public.user_settings
   for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 -- Profiles are readable by anyone (even signed-out visitors need to see
--- the list of names on the login screen), but a profile can only ever be
+-- the list of names on the login screen). A profile can only ever be
 -- created by the account it belongs to (right after that account signs
--- up), and never edited or deleted through the API.
+-- up). It can rename itself from Settings (only the `name` column is
+-- grantable — id/email stay locked so the login identity can't change),
+-- but never deleted through the API.
 drop policy if exists "profiles_read_all" on public.profiles;
 create policy "profiles_read_all" on public.profiles for select using (true);
 
 drop policy if exists "profiles_insert_own" on public.profiles;
 create policy "profiles_insert_own" on public.profiles for insert with check (auth.uid() = id);
 
+drop policy if exists "profiles_update_own" on public.profiles;
+create policy "profiles_update_own" on public.profiles for update using (auth.uid() = id) with check (auth.uid() = id);
+
 grant select on public.profiles to anon, authenticated;
 grant insert on public.profiles to authenticated;
+grant update (name) on public.profiles to authenticated;
 
 -- ============================================================================
 -- STARTER TEMPLATE — mirrors the structure of the original My_Budget.xlsx

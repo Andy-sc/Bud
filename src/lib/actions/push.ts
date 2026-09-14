@@ -1,6 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import type { NotificationPreferences } from "@/lib/database.types";
 
 async function currentUserId() {
   const supabase = await createClient();
@@ -46,4 +47,15 @@ export async function hasPushSubscription(endpoint: string) {
     .eq("endpoint", endpoint)
     .maybeSingle();
   return !!data;
+}
+
+export async function updateNotificationPreferences(
+  prefs: Partial<Omit<NotificationPreferences, "user_id" | "updated_at">>
+) {
+  const { supabase, userId } = await currentUserId();
+  const { error } = await supabase.from("notification_preferences").upsert(
+    { user_id: userId, ...prefs, updated_at: new Date().toISOString() },
+    { onConflict: "user_id" }
+  );
+  if (error) throw new Error(error.message);
 }

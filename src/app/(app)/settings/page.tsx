@@ -1,8 +1,13 @@
 import { createClient } from "@/lib/supabase/server";
-import { getAccounts, getCategoriesWithSubcategories } from "@/lib/budget";
+import {
+  getAccounts,
+  getCategoriesWithSubcategories,
+  getNotificationPreferences,
+} from "@/lib/budget";
 import CategoryManager from "@/components/CategoryManager";
 import AccountManager from "@/components/AccountManager";
 import NotificationSettings from "@/components/NotificationSettings";
+import ProfileSettings from "@/components/ProfileSettings";
 
 export default async function SettingsPage() {
   const supabase = await createClient();
@@ -11,17 +16,27 @@ export default async function SettingsPage() {
   } = await supabase.auth.getUser();
   const userId = user!.id;
 
-  const [categories, accounts] = await Promise.all([
+  const [categories, accounts, notificationPrefs, { data: profile }] = await Promise.all([
     getCategoriesWithSubcategories(supabase, userId),
     getAccounts(supabase, userId),
+    getNotificationPreferences(supabase, userId),
+    supabase.from("profiles").select("name").eq("id", userId).maybeSingle(),
   ]);
 
   return (
     <div className="space-y-8">
       <div>
-        <h1 className="text-xl font-semibold text-[var(--text-primary)] mb-1">
+        <h1 className="text-xl font-semibold text-[var(--text-primary)] mb-1">Profile</h1>
+        <p className="text-sm text-[var(--text-secondary)] mb-4">
+          Your name (shown on the login screen) and your PIN.
+        </p>
+        <ProfileSettings initialName={profile?.name ?? ""} />
+      </div>
+
+      <div>
+        <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-1">
           Categories &amp; subcategories
-        </h1>
+        </h2>
         <p className="text-sm text-[var(--text-secondary)] mb-4">
           Add, edit, or remove whatever you need — a whole new category or
           just a subcategory. Changes apply right away, this month and every
@@ -45,7 +60,7 @@ export default async function SettingsPage() {
         <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-1">
           Notifications
         </h2>
-        <NotificationSettings />
+        <NotificationSettings initialPrefs={notificationPrefs} />
       </div>
     </div>
   );
