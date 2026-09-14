@@ -9,7 +9,7 @@ import { deleteDebt } from "@/lib/actions/debts";
 import { money, pct } from "@/lib/format";
 import type { DebtComputed } from "@/lib/budget";
 import type { Account } from "@/lib/database.types";
-import { CloseIcon } from "@/components/icons";
+import { CloseIcon, CheckCircleIcon } from "@/components/icons";
 
 export default function DebtCard({
   debt,
@@ -19,6 +19,7 @@ export default function DebtCard({
   accounts: Account[];
 }) {
   const [pending, startTransition] = useTransition();
+  const paidOff = debt.currentBalance <= 0;
 
   return (
     <div className="card p-5 space-y-3">
@@ -30,9 +31,19 @@ export default function DebtCard({
           )}
         </div>
         <div className="flex items-center gap-2 shrink-0">
-          <span className="text-xs font-medium text-[var(--text-muted)] tabular-nums">
-            {pct(debt.pctPaid)} paid
-          </span>
+          {paidOff ? (
+            <span
+              className="flex items-center gap-1 text-xs font-medium"
+              style={{ color: "var(--good)" }}
+            >
+              <CheckCircleIcon className="w-3.5 h-3.5" />
+              Paid off
+            </span>
+          ) : (
+            <span className="text-xs font-medium text-[var(--text-muted)] tabular-nums">
+              {pct(debt.pctPaid)} paid
+            </span>
+          )}
           <button
             type="button"
             disabled={pending}
@@ -69,6 +80,12 @@ export default function DebtCard({
         <span>Paid so far: {money(debt.paidSoFar)}</span>
         {debt.interest_rate > 0 && <span>Interest: {debt.interest_rate}%</span>}
       </div>
+
+      {paidOff && (
+        <p className="text-xs text-[var(--text-muted)]">
+          No longer shows up in your monthly budget — it stays here for the record.
+        </p>
+      )}
 
       <DebtPayoffEditor
         subcategoryId={debt.subcategoryId}

@@ -98,6 +98,7 @@ export async function getMonthBudget(
     fixedActualsResult,
     expensesResult,
     debtPaymentsResult,
+    allTimeDebtPaymentsResult,
     debtsResult,
     incomePlanResult,
     userSettingsResult,
@@ -128,6 +129,7 @@ export async function getMonthBudget(
       .eq("user_id", userId)
       .gte("date", start)
       .lt("date", end),
+    supabase.from("debt_payments").select("amount, debt_id").eq("user_id", userId),
     supabase.from("debts").select("*").eq("user_id", userId),
     supabase
       .from("income_plan")
@@ -180,9 +182,26 @@ export async function getMonthBudget(
     debtsById.set(d.id, d);
   }
 
+  // All-time (not just this month) payments per debt, to tell whether a
+  // debt is fully paid off — separate from debtPaymentsByDebt above,
+  // which only covers this month's "actual" for the budget line.
+  const allTimePaidByDebt = new Map<string, number>();
+  for (const p of allTimeDebtPaymentsResult.data ?? []) {
+    allTimePaidByDebt.set(
+      p.debt_id,
+      (allTimePaidByDebt.get(p.debt_id) ?? 0) + Number(p.amount)
+    );
+  }
+  const isDebtPaidOff = (debtId: string) => {
+    const debt = debtsById.get(debtId);
+    if (!debt) return false;
+    return (allTimePaidByDebt.get(debtId) ?? 0) >= Number(debt.original_amount);
+  };
+
   const categories: CategoryComputed[] = categoriesResult.map((cat) => {
-    const subcategories: SubcategoryComputed[] = cat.subcategories.map(
-      (sub) => {
+    const subcategories: SubcategoryComputed[] = cat.subcategories
+      .filter((sub) => sub.type !== "debt" || !sub.debt_id || !isDebtPaidOff(sub.debt_id))
+      .map((sub) => {
         const planned = overridesBySubcat.get(sub.id) ?? Number(sub.planned_amount);
         let actual = 0;
         if (sub.type === "variable") {
@@ -218,7 +237,7 @@ export async function getMonthBudget(
       diff: planned - actual,
       pctUsed: pct(actual, planned),
     };
-  });
+  }).filter((cat) => !cat.is_debt || cat.subcategories.length > 0);
 
   if (includeRollover) {
     const prev = shiftMonth(year, month, -1);
