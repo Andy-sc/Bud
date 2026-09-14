@@ -1,6 +1,7 @@
 import ProgressBar from "@/components/ProgressBar";
 import FixedActualEditor from "@/components/FixedActualEditor";
 import PlannedAmountEditor from "@/components/PlannedAmountEditor";
+import SubcategoryNameEditor from "@/components/SubcategoryNameEditor";
 import { money, pct } from "@/lib/format";
 import { categoryColorVar } from "@/lib/categoryColors";
 import type { CategoryComputed } from "@/lib/budget";
@@ -64,7 +65,17 @@ export default function CategoryCard({
             className="flex items-center justify-between gap-2 text-sm border-t border-[var(--border)] pt-2 first:border-0 first:pt-0"
           >
             <div className="min-w-0">
-              <p className="text-[var(--text-primary)] truncate">{sub.name}</p>
+              {sub.type === "debt" ? (
+                <p className="text-[var(--text-primary)] truncate">{sub.name}</p>
+              ) : (
+                <SubcategoryNameEditor
+                  subcategoryId={sub.id}
+                  name={sub.name}
+                  plannedAmount={sub.planned}
+                  dueDay={sub.due_day}
+                  isBuffer={sub.is_buffer}
+                />
+              )}
               <p className="text-xs text-[var(--text-muted)]">
                 {TYPE_LABEL[sub.type]} ·{" "}
                 {sub.type === "debt" ? (

@@ -11,12 +11,13 @@ export default async function AppLayout({ children }: { children: React.ReactNod
 
   if (!user) redirect("/login");
 
-  const { count } = await supabase
-    .from("categories")
-    .select("id", { count: "exact", head: true })
-    .eq("user_id", user.id);
+  const { data: settings } = await supabase
+    .from("user_settings")
+    .select("onboarded")
+    .eq("user_id", user.id)
+    .maybeSingle();
 
-  if (!count) {
+  if (!settings?.onboarded) {
     return <Onboarding />;
   }
 

@@ -146,8 +146,21 @@ create table if not exists public.debt_payments (
 create table if not exists public.user_settings (
   user_id uuid primary key references auth.users(id) on delete cascade,
   default_income_planned numeric(12,2) not null default 0,
-  display_name text
+  display_name text,
+  -- Whether this profile has been through (or explicitly skipped) the
+  -- welcome screen. Separate from "has any categories" so "start from
+  -- scratch" is possible without getting stuck back on that screen.
+  onboarded boolean not null default false
 );
+
+alter table public.user_settings add column if not exists onboarded boolean not null default false;
+
+-- Backfill: anyone who already has categories has effectively already
+-- been through onboarding (this flag is new — onboarding used to be
+-- gated on categories.length instead).
+insert into public.user_settings (user_id, onboarded)
+select distinct user_id, true from public.categories
+on conflict (user_id) do update set onboarded = true;
 
 create table if not exists public.goals (
   id uuid primary key default gen_random_uuid(),

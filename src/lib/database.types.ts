@@ -116,6 +116,7 @@ export interface UserSettings {
   user_id: string;
   default_income_planned: number;
   display_name: string | null;
+  onboarded: boolean;
 }
 
 export interface Profile {
