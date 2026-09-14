@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { deleteExpense, updateExpense } from "@/lib/actions/expenses";
 import { money } from "@/lib/format";
 import type { Account, Category, Expense, Subcategory } from "@/lib/database.types";
@@ -17,14 +17,37 @@ export default function ExpenseHistoryList({
   categories: CategoryWithSubs[];
   accounts: Account[];
 }) {
-  const subcatById = new Map<string, string>();
-  for (const c of categories) {
-    for (const s of c.subcategories) subcatById.set(s.id, `${c.name} · ${s.name}`);
-  }
-  const accountById = new Map(accounts.map((a) => [a.id, a.name]));
+  const [query, setQuery] = useState("");
+  const [subcategoryFilter, setSubcategoryFilter] = useState("");
+
+  const subcatById = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const c of categories) {
+      for (const s of c.subcategories) m.set(s.id, `${c.name} · ${s.name}`);
+    }
+    return m;
+  }, [categories]);
+  const accountById = useMemo(
+    () => new Map(accounts.map((a) => [a.id, a.name])),
+    [accounts]
+  );
   const loggableCategories = categories
     .map((c) => ({ ...c, subcategories: c.subcategories.filter((s) => s.type !== "debt") }))
     .filter((c) => c.subcategories.length > 0);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return expenses.filter((e) => {
+      if (subcategoryFilter && e.subcategory_id !== subcategoryFilter) return false;
+      if (!q) return true;
+      const label = (subcatById.get(e.subcategory_id) ?? "").toLowerCase();
+      const account = (e.account_id ? accountById.get(e.account_id) : "") ?? "";
+      const note = e.note ?? "";
+      return (
+        label.includes(q) || account.toLowerCase().includes(q) || note.toLowerCase().includes(q)
+      );
+    });
+  }, [expenses, query, subcategoryFilter, subcatById, accountById]);
 
   if (expenses.length === 0) {
     return (
@@ -35,17 +58,49 @@ export default function ExpenseHistoryList({
   }
 
   return (
-    <div className="divide-y divide-[var(--border)]">
-      {expenses.map((e) => (
-        <ExpenseRow
-          key={e.id}
-          expense={e}
-          categories={loggableCategories}
-          accounts={accounts}
-          subcatById={subcatById}
-          accountById={accountById}
+    <div className="space-y-3">
+      <div className="flex flex-col sm:flex-row gap-2">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search note, category, account..."
+          className="control flex-1 px-3 py-2 text-sm border border-[var(--border)] bg-[var(--surface)]"
         />
-      ))}
+        <select
+          value={subcategoryFilter}
+          onChange={(e) => setSubcategoryFilter(e.target.value)}
+          className="control px-3 py-2 text-sm border border-[var(--border)] bg-[var(--surface)]"
+        >
+          <option value="">All categories</option>
+          {loggableCategories.map((c) => (
+            <optgroup key={c.id} label={c.name}>
+              {c.subcategories.map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </optgroup>
+          ))}
+        </select>
+      </div>
+
+      {filtered.length === 0 ? (
+        <p className="text-sm text-[var(--text-muted)] py-4">No expenses match your search.</p>
+      ) : (
+        <div className="divide-y divide-[var(--border)]">
+          {filtered.map((e) => (
+            <ExpenseRow
+              key={e.id}
+              expense={e}
+              categories={loggableCategories}
+              accounts={accounts}
+              subcatById={subcatById}
+              accountById={accountById}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useMemo, useState, useTransition } from "react";
 import { deleteIncome, updateIncome } from "@/lib/actions/income";
 import { money } from "@/lib/format";
 import type { Account, Income } from "@/lib/database.types";
@@ -13,7 +13,34 @@ export default function IncomeHistoryList({
   income: Income[];
   accounts: Account[];
 }) {
-  const accountById = new Map(accounts.map((a) => [a.id, a.name]));
+  const [query, setQuery] = useState("");
+  const [sourceFilter, setSourceFilter] = useState("");
+
+  const accountById = useMemo(
+    () => new Map(accounts.map((a) => [a.id, a.name])),
+    [accounts]
+  );
+  const sources = useMemo(() => {
+    const set = new Set<string>();
+    for (const i of income) set.add(i.source || "Income");
+    return Array.from(set).sort((a, b) => a.localeCompare(b));
+  }, [income]);
+
+  const filtered = useMemo(() => {
+    const q = query.trim().toLowerCase();
+    return income.filter((i) => {
+      const source = i.source || "Income";
+      if (sourceFilter && source !== sourceFilter) return false;
+      if (!q) return true;
+      const account = (i.account_id ? accountById.get(i.account_id) : "") ?? "";
+      const note = i.note ?? "";
+      return (
+        source.toLowerCase().includes(q) ||
+        account.toLowerCase().includes(q) ||
+        note.toLowerCase().includes(q)
+      );
+    });
+  }, [income, query, sourceFilter, accountById]);
 
   if (income.length === 0) {
     return (
@@ -24,10 +51,38 @@ export default function IncomeHistoryList({
   }
 
   return (
-    <div className="divide-y divide-[var(--border)]">
-      {income.map((i) => (
-        <IncomeRow key={i.id} income={i} accounts={accounts} accountById={accountById} />
-      ))}
+    <div className="space-y-3">
+      <div className="flex flex-col sm:flex-row gap-2">
+        <input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          placeholder="Search note, source, account..."
+          className="control flex-1 px-3 py-2 text-sm border border-[var(--border)] bg-[var(--surface)]"
+        />
+        <select
+          value={sourceFilter}
+          onChange={(e) => setSourceFilter(e.target.value)}
+          className="control px-3 py-2 text-sm border border-[var(--border)] bg-[var(--surface)]"
+        >
+          <option value="">All sources</option>
+          {sources.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
+        </select>
+      </div>
+
+      {filtered.length === 0 ? (
+        <p className="text-sm text-[var(--text-muted)] py-4">No income entries match your search.</p>
+      ) : (
+        <div className="divide-y divide-[var(--border)]">
+          {filtered.map((i) => (
+            <IncomeRow key={i.id} income={i} accounts={accounts} accountById={accountById} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -888,6 +888,112 @@ export function computeGoalProgress(goal: Goal, from: Date = new Date()): GoalPr
   };
 }
 
+const MONTH_NAMES = [
+  "Jan", "Feb", "Mar", "Apr", "May", "Jun",
+  "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
+];
+
+export interface MonthlyTrendPoint {
+  year: number;
+  month: number;
+  label: string;
+  incomeActual: number;
+  expensesActual: number;
+  balanceActual: number;
+}
+
+function ymInRange(
+  year: number,
+  month: number,
+  fromYear: number,
+  fromMonth: number,
+  toYear: number,
+  toMonth: number
+) {
+  const after = year > fromYear || (year === fromYear && month >= fromMonth);
+  const before = year < toYear || (year === toYear && month <= toMonth);
+  return after && before;
+}
+
+/**
+ * Income/expenses/balance for every month in [from, to] (inclusive),
+ * powering the Trends chart. Uses the same "actual expenses" formula as
+ * getYearSummary/getMonthBudget: logged expenses + hand-typed fixed
+ * actuals + debt payments.
+ */
+export async function getMonthlyTrend(
+  supabase: SupabaseClient,
+  userId: string,
+  fromYear: number,
+  fromMonth: number,
+  toYear: number,
+  toMonth: number
+): Promise<MonthlyTrendPoint[]> {
+  const start = `${fromYear}-${String(fromMonth).padStart(2, "0")}-01`;
+  const endYear = toMonth === 12 ? toYear + 1 : toYear;
+  const endMonth = toMonth === 12 ? 1 : toMonth + 1;
+  const end = `${endYear}-${String(endMonth).padStart(2, "0")}-01`;
+
+  const [{ data: incomeRows }, { data: expenseRows }, { data: fixedActualRows }, { data: debtPaymentRows }] =
+    await Promise.all([
+      supabase.from("income").select("amount, date").eq("user_id", userId).gte("date", start).lt("date", end),
+      supabase.from("expenses").select("amount, date").eq("user_id", userId).gte("date", start).lt("date", end),
+      supabase.from("fixed_actuals").select("actual_amount, year, month").eq("user_id", userId),
+      supabase.from("debt_payments").select("amount, date").eq("user_id", userId).gte("date", start).lt("date", end),
+    ]);
+
+  const buckets = new Map<string, { incomeActual: number; expensesActual: number }>();
+  const key = (y: number, m: number) => `${y}-${m}`;
+  const ensure = (y: number, m: number) => {
+    const k = key(y, m);
+    if (!buckets.has(k)) buckets.set(k, { incomeActual: 0, expensesActual: 0 });
+    return buckets.get(k)!;
+  };
+
+  let y = fromYear;
+  let m = fromMonth;
+  while (y < toYear || (y === toYear && m <= toMonth)) {
+    ensure(y, m);
+    m++;
+    if (m > 12) {
+      m = 1;
+      y++;
+    }
+  }
+
+  for (const r of incomeRows ?? []) {
+    const [ry, rm] = r.date.split("-").map(Number);
+    ensure(ry, rm).incomeActual += Number(r.amount);
+  }
+  for (const r of expenseRows ?? []) {
+    const [ry, rm] = r.date.split("-").map(Number);
+    ensure(ry, rm).expensesActual += Number(r.amount);
+  }
+  for (const r of fixedActualRows ?? []) {
+    if (ymInRange(r.year, r.month, fromYear, fromMonth, toYear, toMonth)) {
+      ensure(r.year, r.month).expensesActual += Number(r.actual_amount);
+    }
+  }
+  for (const r of debtPaymentRows ?? []) {
+    const [ry, rm] = r.date.split("-").map(Number);
+    ensure(ry, rm).expensesActual += Number(r.amount);
+  }
+
+  return Array.from(buckets.entries())
+    .map(([k, v]) => {
+      const [yy, mm] = k.split("-").map(Number);
+      return {
+        year: yy,
+        month: mm,
+        label: `${MONTH_NAMES[mm - 1]} ${yy}`,
+        incomeActual: v.incomeActual,
+        expensesActual: v.expensesActual,
+        balanceActual: v.incomeActual - v.expensesActual,
+      };
+    })
+    .sort((a, b) => a.year - b.year || a.month - b.month);
+}
+
 export const DEFAULT_NOTIFICATION_PREFS: Omit<
   NotificationPreferences,
   "user_id" | "updated_at"

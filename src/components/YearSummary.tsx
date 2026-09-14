@@ -1,14 +1,23 @@
+import Link from "next/link";
 import { money } from "@/lib/format";
+import { ChevronRightIcon } from "@/components/icons";
 import type { YearSummary as YearSummaryData } from "@/lib/budget";
 
 export default function YearSummary({ data }: { data: YearSummaryData }) {
   const balancePositive = data.balanceActual >= 0;
+  const yyyy = String(data.year).padStart(4, "0");
 
   return (
-    <div className="card p-5 md:p-6">
-      <p className="text-sm font-medium text-[var(--text-secondary)] mb-4">
-        {data.year} summary (full year)
-      </p>
+    <Link
+      href={`/trends?from=${yyyy}-01&to=${yyyy}-12`}
+      className="card p-5 md:p-6 block hover:border-[var(--accent)] transition"
+    >
+      <div className="flex items-center justify-between mb-4">
+        <p className="text-sm font-medium text-[var(--text-secondary)]">
+          {data.year} summary (full year)
+        </p>
+        <ChevronRightIcon className="w-4 h-4 text-[var(--text-muted)]" />
+      </div>
       <div className="grid grid-cols-3 gap-4">
         <div>
           <p className="text-xs text-[var(--text-muted)] mb-1">Income</p>
@@ -32,6 +41,6 @@ export default function YearSummary({ data }: { data: YearSummaryData }) {
           </p>
         </div>
       </div>
-    </div>
+    </Link>
   );
 }
