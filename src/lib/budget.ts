@@ -379,6 +379,7 @@ export interface DebtComputed extends Debt {
   pctPaid: number;
   plannedMonthlyPayment: number;
   subcategoryId: string | null;
+  dueDay: number | null;
 }
 
 export async function getDebtsWithBalance(
@@ -395,7 +396,7 @@ export async function getDebtsWithBalance(
       supabase.from("debt_payments").select("debt_id, amount").eq("user_id", userId),
       supabase
         .from("subcategories")
-        .select("id, debt_id, planned_amount")
+        .select("id, debt_id, planned_amount, due_day")
         .eq("user_id", userId)
         .eq("type", "debt"),
     ]);
@@ -405,7 +406,10 @@ export async function getDebtsWithBalance(
     paidByDebt.set(p.debt_id, (paidByDebt.get(p.debt_id) ?? 0) + Number(p.amount));
   }
 
-  const subcatByDebt = new Map<string, { id: string; planned_amount: number }>();
+  const subcatByDebt = new Map<
+    string,
+    { id: string; planned_amount: number; due_day: number | null }
+  >();
   for (const s of subcategories ?? []) {
     if (s.debt_id) subcatByDebt.set(s.debt_id, s);
   }
@@ -421,6 +425,7 @@ export async function getDebtsWithBalance(
       pctPaid: original ? paidSoFar / original : 0,
       plannedMonthlyPayment: linkedSub ? Number(linkedSub.planned_amount) : 0,
       subcategoryId: linkedSub?.id ?? null,
+      dueDay: linkedSub?.due_day ?? null,
     };
   });
 }
@@ -641,7 +646,7 @@ export async function getMonthCashFlow(
   const rangeEnd = new Date(`${end}T00:00:00`);
   const numDays = daysInMonth(year, month);
 
-  const [{ data: incomeInMonth }, { data: recurringIncome }, categories] =
+  const [{ data: incomeInMonth }, { data: recurringIncome }, categories, { data: debts }, { data: allDebtPayments }] =
     await Promise.all([
       supabase
         .from("income")
@@ -655,7 +660,21 @@ export async function getMonthCashFlow(
         .eq("user_id", userId)
         .eq("is_recurring", true),
       getCategoriesWithSubcategories(supabase, userId),
+      supabase.from("debts").select("id, original_amount").eq("user_id", userId),
+      supabase.from("debt_payments").select("debt_id, amount").eq("user_id", userId),
     ]);
+
+  // A debt fully paid off no longer shows up as a bill to schedule —
+  // same "hide it once it's done" rule as the dashboard budget.
+  const paidByDebt = new Map<string, number>();
+  for (const p of allDebtPayments ?? []) {
+    paidByDebt.set(p.debt_id, (paidByDebt.get(p.debt_id) ?? 0) + Number(p.amount));
+  }
+  const paidOffDebtIds = new Set(
+    (debts ?? [])
+      .filter((d) => (paidByDebt.get(d.id) ?? 0) >= Number(d.original_amount))
+      .map((d) => d.id)
+  );
 
   const actualDatesBySource = new Set<string>();
   for (const row of (incomeInMonth ?? []) as Income[]) {
@@ -701,7 +720,8 @@ export async function getMonthCashFlow(
 
   for (const cat of categories) {
     for (const sub of cat.subcategories) {
-      if (sub.type !== "fixed") continue;
+      if (sub.type !== "fixed" && sub.type !== "debt") continue;
+      if (sub.type === "debt" && (!sub.debt_id || paidOffDebtIds.has(sub.debt_id))) continue;
       if (sub.due_day && sub.due_day <= numDays) {
         days[sub.due_day - 1].bills.push({
           subcategoryId: sub.id,

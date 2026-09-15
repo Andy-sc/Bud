@@ -123,6 +123,7 @@ export async function updateSubcategoryDueDay(id: string, dueDay: number | null)
   revalidatePath("/dashboard");
   revalidatePath("/calendar");
   revalidatePath("/expenses");
+  revalidatePath("/debts");
 }
 
 export async function deleteSubcategory(id: string) {

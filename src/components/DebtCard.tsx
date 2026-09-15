@@ -95,7 +95,12 @@ export default function DebtCard({
       />
 
       <div className="border-t border-[var(--border)] pt-3 space-y-2">
-        <DebtPaymentForm debtId={debt.id} accounts={accounts} />
+        <DebtPaymentForm
+          debtId={debt.id}
+          subcategoryId={debt.subcategoryId}
+          dueDay={debt.dueDay}
+          accounts={accounts}
+        />
         <DebtDetailsEditor
           debtId={debt.id}
           name={debt.name}

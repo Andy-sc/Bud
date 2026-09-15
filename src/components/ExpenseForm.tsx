@@ -28,6 +28,7 @@ export default function ExpenseForm({
   );
 
   const [categoryId, setCategoryId] = useState(categories[0]?.id ?? "");
+  const [dateValue, setDateValue] = useState(() => new Date().toISOString().slice(0, 10));
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [formKey, setFormKey] = useState(0);
@@ -166,7 +167,8 @@ export default function ExpenseForm({
             type="date"
             name="date"
             required
-            defaultValue={new Date().toISOString().slice(0, 10)}
+            value={dateValue}
+            onChange={(e) => setDateValue(e.target.value)}
             className="control w-full px-3 py-2 border border-[var(--border)] bg-[var(--surface)] text-sm"
           />
         </Field>
@@ -287,17 +289,21 @@ export default function ExpenseForm({
       )}
 
       {activeSubcategory?.type === "fixed" && (
-        <Field label="Which day do you want to pay this on?">
+        <Field label="Pay day">
           <input
-            key={activeSubcategory.id}
+            key={`${activeSubcategory.id}-${dateValue}`}
             type="number"
             name="due_day"
             min={1}
             max={31}
-            defaultValue={activeSubcategory.due_day ?? ""}
-            placeholder="e.g. 15"
+            defaultValue={activeSubcategory.due_day ?? Number(dateValue.slice(8, 10))}
             className="control w-full px-3 py-2 border border-[var(--border)] bg-[var(--surface)] text-sm"
           />
+          <span className="block text-xs text-[var(--text-muted)] mt-1">
+            {activeSubcategory.due_day
+              ? "Change it if this bill's due date moved."
+              : "Defaulted to this expense's date — change it if that's not the usual day."}
+          </span>
         </Field>
       )}
 
