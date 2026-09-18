@@ -54,6 +54,16 @@ export default function CashFlowCalendarGrid({ data }: { data: MonthCashFlow }) 
                       −{money(b.amount)} {b.name}
                     </p>
                   ))}
+                {d.transfers.map((t, i) => (
+                  <p
+                    key={i}
+                    className="text-[10px] leading-tight tabular-nums truncate"
+                    style={{ color: "var(--text-secondary)" }}
+                    title={`${t.fromAccountName} → ${t.toAccountName}${t.actual ? "" : " (expected)"}`}
+                  >
+                    ↔ {money(t.amount)}
+                  </p>
+                ))}
               </div>
             </div>
           );

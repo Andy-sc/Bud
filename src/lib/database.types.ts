@@ -94,6 +94,19 @@ export interface Income {
   recurrence_interval: RecurrenceInterval | null;
 }
 
+export interface Transfer {
+  id: string;
+  user_id: string;
+  from_account_id: string;
+  to_account_id: string;
+  amount: number;
+  date: string;
+  note: string | null;
+  created_at: string;
+  is_recurring: boolean;
+  recurrence_interval: RecurrenceInterval | null;
+}
+
 export interface IncomePlan {
   id: string;
   user_id: string;

@@ -61,6 +61,20 @@ export default function CashFlowWeekList({ data }: { data: MonthCashFlow }) {
                 ))}
               </ul>
             )}
+
+            {week.transfers.length > 0 && (
+              <ul className="text-xs text-[var(--text-muted)] space-y-0.5 pt-1 border-t border-[var(--border)]">
+                {week.transfers.map((t, i) => (
+                  <li key={i} className="flex items-center justify-between">
+                    <span>
+                      Day {t.day} · {t.fromAccountName} → {t.toAccountName}
+                      {!t.actual && " (expected)"}
+                    </span>
+                    <span className="tabular-nums">{money(t.amount)}</span>
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
         );
       })}

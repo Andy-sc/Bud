@@ -9,6 +9,7 @@ import type {
   Income,
   NotificationPreferences,
   Subcategory,
+  Transfer,
 } from "@/lib/database.types";
 
 export interface SubcategoryComputed extends Subcategory {
@@ -532,11 +533,22 @@ export interface CashFlowBillEvent {
   amount: number;
 }
 
+export interface CashFlowTransferEvent {
+  fromAccountName: string;
+  toAccountName: string;
+  amount: number;
+  actual: boolean; // false = projected from a recurring pattern, not yet logged
+}
+
 export interface CashFlowDay {
   day: number;
   date: string;
   income: CashFlowIncomeEvent[];
   bills: CashFlowBillEvent[];
+  // Transfers between the user's own accounts — shown for visibility only.
+  // Net-zero across the combined cash-flow view (money just moves
+  // buckets), so these don't affect runningBalance below.
+  transfers: CashFlowTransferEvent[];
   // Running balance through the end of this day: starting balance + every
   // income event so far this month - every bill so far this month. Goes
   // negative the moment scheduled bills outpace money actually available.
@@ -559,6 +571,7 @@ export interface CashFlowWeek {
   incomeProjected: number;
   bills: (CashFlowBillEvent & { day: number })[];
   billsTotal: number;
+  transfers: (CashFlowTransferEvent & { day: number })[];
   freeToSpend: number;
 }
 
@@ -638,6 +651,54 @@ export function projectRecurringIncome(
   return projections;
 }
 
+/**
+ * Same idea as projectRecurringIncome, but keyed by (from, to) account
+ * pair instead of source — a recurring transfer's pattern is "this pair
+ * of accounts, this often", anchored on the most recent logged occurrence.
+ */
+function projectRecurringTransfers(
+  recurringRows: Transfer[],
+  actualDatesByPair: Set<string>,
+  rangeStart: Date,
+  rangeEnd: Date
+): { date: string; amount: number; fromAccountId: string; toAccountId: string }[] {
+  const latestByPair = new Map<string, Transfer>();
+  for (const row of recurringRows) {
+    const key = `${row.from_account_id}|${row.to_account_id}`;
+    const existing = latestByPair.get(key);
+    if (!existing || row.date > existing.date) latestByPair.set(key, row);
+  }
+
+  const projections: { date: string; amount: number; fromAccountId: string; toAccountId: string }[] = [];
+
+  for (const [key, anchor] of latestByPair) {
+    if (!anchor.recurrence_interval) continue;
+    let date = new Date(`${anchor.date}T00:00:00`);
+    for (let i = 0; i < 400; i++) {
+      date =
+        anchor.recurrence_interval === "weekly"
+          ? addDays(date, 7)
+          : anchor.recurrence_interval === "biweekly"
+            ? addDays(date, 14)
+            : addOneMonth(date);
+      if (date >= rangeEnd) break;
+      if (date >= rangeStart) {
+        const iso = toISODate(date);
+        if (!actualDatesByPair.has(`${key}|${iso}`)) {
+          projections.push({
+            date: iso,
+            amount: Number(anchor.amount),
+            fromAccountId: anchor.from_account_id,
+            toAccountId: anchor.to_account_id,
+          });
+        }
+      }
+    }
+  }
+
+  return projections;
+}
+
 export async function getMonthCashFlow(
   supabase: SupabaseClient,
   userId: string,
@@ -650,23 +711,41 @@ export async function getMonthCashFlow(
   const rangeEnd = new Date(`${end}T00:00:00`);
   const numDays = daysInMonth(year, month);
 
-  const [{ data: incomeInMonth }, { data: recurringIncome }, categories, { data: debts }, { data: allDebtPayments }] =
-    await Promise.all([
-      supabase
-        .from("income")
-        .select("*")
-        .eq("user_id", userId)
-        .gte("date", start)
-        .lt("date", end),
-      supabase
-        .from("income")
-        .select("*")
-        .eq("user_id", userId)
-        .eq("is_recurring", true),
-      getCategoriesWithSubcategories(supabase, userId),
-      supabase.from("debts").select("id, original_amount").eq("user_id", userId),
-      supabase.from("debt_payments").select("debt_id, amount").eq("user_id", userId),
-    ]);
+  const [
+    { data: incomeInMonth },
+    { data: recurringIncome },
+    categories,
+    { data: debts },
+    { data: allDebtPayments },
+    { data: transfersInMonth },
+    { data: recurringTransfers },
+    accounts,
+  ] = await Promise.all([
+    supabase
+      .from("income")
+      .select("*")
+      .eq("user_id", userId)
+      .gte("date", start)
+      .lt("date", end),
+    supabase
+      .from("income")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("is_recurring", true),
+    getCategoriesWithSubcategories(supabase, userId),
+    supabase.from("debts").select("id, original_amount").eq("user_id", userId),
+    supabase.from("debt_payments").select("debt_id, amount").eq("user_id", userId),
+    supabase
+      .from("transfers")
+      .select("*")
+      .eq("user_id", userId)
+      .gte("date", start)
+      .lt("date", end),
+    supabase.from("transfers").select("*").eq("user_id", userId).eq("is_recurring", true),
+    getAccounts(supabase, userId),
+  ]);
+
+  const accountNameById = new Map(accounts.map((a) => [a.id, a.name]));
 
   // A debt fully paid off no longer shows up as a bill to schedule —
   // same "hide it once it's done" rule as the dashboard budget.
@@ -697,6 +776,7 @@ export async function getMonthCashFlow(
     date: `${start.slice(0, 8)}${String(i + 1).padStart(2, "0")}`,
     income: [],
     bills: [],
+    transfers: [],
     runningBalance: startingBalance,
   }));
 
@@ -717,6 +797,42 @@ export async function getMonthCashFlow(
     const bucket = days[day - 1];
     if (bucket) {
       bucket.income.push({ amount: p.amount, source: p.source, actual: false });
+    }
+  }
+
+  const actualDatesByTransferPair = new Set<string>();
+  for (const row of (transfersInMonth ?? []) as Transfer[]) {
+    actualDatesByTransferPair.add(`${row.from_account_id}|${row.to_account_id}|${row.date}`);
+  }
+  const projectedTransfers = projectRecurringTransfers(
+    (recurringTransfers ?? []) as Transfer[],
+    actualDatesByTransferPair,
+    rangeStart,
+    rangeEnd
+  );
+
+  for (const row of (transfersInMonth ?? []) as Transfer[]) {
+    const day = Number(row.date.slice(8, 10));
+    const bucket = days[day - 1];
+    if (bucket) {
+      bucket.transfers.push({
+        fromAccountName: accountNameById.get(row.from_account_id) ?? "Account",
+        toAccountName: accountNameById.get(row.to_account_id) ?? "Account",
+        amount: Number(row.amount),
+        actual: true,
+      });
+    }
+  }
+  for (const p of projectedTransfers) {
+    const day = Number(p.date.slice(8, 10));
+    const bucket = days[day - 1];
+    if (bucket) {
+      bucket.transfers.push({
+        fromAccountName: accountNameById.get(p.fromAccountId) ?? "Account",
+        toAccountName: accountNameById.get(p.toAccountId) ?? "Account",
+        amount: p.amount,
+        actual: false,
+      });
     }
   }
 
@@ -787,6 +903,7 @@ export async function getMonthCashFlow(
     let incomeActual = 0;
     let incomeProjected = 0;
     const bills: (CashFlowBillEvent & { day: number })[] = [];
+    const transfers: (CashFlowTransferEvent & { day: number })[] = [];
 
     for (const d of weekDays) {
       for (const ev of d.income) {
@@ -794,6 +911,7 @@ export async function getMonthCashFlow(
         else incomeProjected += ev.amount;
       }
       for (const b of d.bills) bills.push({ ...b, day: d.day });
+      for (const t of d.transfers) transfers.push({ ...t, day: d.day });
     }
 
     const billsTotal = bills.reduce((s, b) => s + b.amount, 0);
@@ -806,6 +924,7 @@ export async function getMonthCashFlow(
       incomeProjected,
       bills,
       billsTotal,
+      transfers,
       freeToSpend: incomeActual + incomeProjected - billsTotal,
     });
   }
@@ -841,7 +960,7 @@ export async function getAccountSummary(
   supabase: SupabaseClient,
   userId: string
 ): Promise<AccountSummary> {
-  const [accounts, { data: incomeRows }, { data: expenseRows }, { data: debtPaymentRows }] =
+  const [accounts, { data: incomeRows }, { data: expenseRows }, { data: debtPaymentRows }, { data: transferRows }] =
     await Promise.all([
       getAccounts(supabase, userId),
       supabase.from("income").select("account_id, amount, date").eq("user_id", userId),
@@ -849,6 +968,10 @@ export async function getAccountSummary(
       supabase
         .from("debt_payments")
         .select("account_id, amount, date")
+        .eq("user_id", userId),
+      supabase
+        .from("transfers")
+        .select("from_account_id, to_account_id, amount, date")
         .eq("user_id", userId),
     ]);
 
@@ -859,8 +982,19 @@ export async function getAccountSummary(
         .filter((r) => r.account_id === accountId && inRange(r.date))
         .reduce((s, r) => s + Number(r.amount), 0);
 
+    // A transfer moves money between the user's own accounts — it's
+    // neither income nor an expense, so it's handled separately here:
+    // money received nets the same as income, money sent nets the same
+    // as an expense, whichever account it touches.
+    const transfersIn = (transferRows ?? [])
+      .filter((t) => t.to_account_id === accountId && inRange(t.date))
+      .reduce((s, t) => s + Number(t.amount), 0);
+    const transfersOut = (transferRows ?? [])
+      .filter((t) => t.from_account_id === accountId && inRange(t.date))
+      .reduce((s, t) => s + Number(t.amount), 0);
+
     return (
-      sumFor(incomeRows) - sumFor(expenseRows) - sumFor(debtPaymentRows)
+      sumFor(incomeRows) - sumFor(expenseRows) - sumFor(debtPaymentRows) + transfersIn - transfersOut
     );
   }
 

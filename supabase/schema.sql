@@ -149,6 +149,29 @@ create table if not exists public.debt_payments (
   created_at timestamptz not null default now()
 );
 
+-- A transfer moves money between two of the same user's own accounts —
+-- neither an expense (nothing was spent) nor income (not new money), so
+-- it's kept out of both budget totals and just adjusts each account's
+-- balance directly. is_recurring/recurrence_interval mirror income's
+-- pattern: the most recent recurring row for a given (from, to) pair is
+-- the current pattern, projected onto the calendar and auto-materialized
+-- into a new actual row by the daily cron once its date arrives.
+create table if not exists public.transfers (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  from_account_id uuid not null references public.accounts(id) on delete cascade,
+  to_account_id uuid not null references public.accounts(id) on delete cascade,
+  amount numeric(12,2) not null,
+  date date not null,
+  note text,
+  created_at timestamptz not null default now(),
+  is_recurring boolean not null default false,
+  recurrence_interval text check (recurrence_interval in ('weekly', 'biweekly', 'monthly')),
+  check (from_account_id <> to_account_id)
+);
+
+create index if not exists idx_transfers_user_date on public.transfers(user_id, date);
+
 create table if not exists public.user_settings (
   user_id uuid primary key references auth.users(id) on delete cascade,
   default_income_planned numeric(12,2) not null default 0,
@@ -267,6 +290,7 @@ alter table public.goals enable row level security;
 alter table public.push_subscriptions enable row level security;
 alter table public.notification_preferences enable row level security;
 alter table public.category_limit_alerts enable row level security;
+alter table public.transfers enable row level security;
 
 do $$
 declare
@@ -275,7 +299,7 @@ begin
   for t in select unnest(array[
     'accounts','categories','subcategories','debts','monthly_overrides',
     'fixed_actuals','expenses','income','income_plan','debt_payments','goals',
-    'push_subscriptions','notification_preferences','category_limit_alerts'
+    'push_subscriptions','notification_preferences','category_limit_alerts','transfers'
   ])
   loop
     execute format('drop policy if exists "owner_all" on public.%I;', t);

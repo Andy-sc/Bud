@@ -162,9 +162,12 @@ completamente separado del tuyo y del de Jose.
 
 ---
 
-## Notificaciones (opcional)
+## Notificaciones y transferencias recurrentes (opcional)
 
-Si activas esto, cada quien puede prender las notificaciones desde
+Esta sección activa dos cosas a la vez porque comparten la misma
+configuración (`SUPABASE_SERVICE_ROLE_KEY` + `CRON_SECRET`):
+
+**Notificaciones** — cada quien puede prenderlas desde
 **Settings → Notifications** y elegir cuáles quiere recibir — todas
 llegan como notificación push al navegador, sin apps externas, sin
 correo, gratis:
@@ -179,12 +182,23 @@ correo, gratis:
 - **Daily balance** — un resumen diario del balance across accounts.
 - **Goal reached** — cuando terminas de llenar una de tus metas.
 
+**Transferencias recurrentes** — en Settings → Accounts, "+ Add transfer
+between accounts" con "Repeats automatically" activado (ej. $25 de
+Checking a Savings cada lunes). Una vez configurada, un cron diario crea
+la transferencia real ese día sola — sin que tengas que volver a
+anotarla — y ya sale también en el Calendario, tanto lo ya pasado como
+lo esperado hacia adelante.
+
+Sin esta configuración en Vercel, las transferencias recurrentes se
+pueden crear pero **no se van a materializar solas** — solo funciona el
+registro manual.
+
 También desde **Settings → Profile** cada quien puede cambiar su nombre
 (el que aparece en la pantalla de login) y su PIN, sin tocar código.
 
 1. Ve a Supabase → **SQL Editor** y vuelve a correr `supabase/schema.sql`
    completo (crea las tablas nuevas que le faltan: `push_subscriptions`,
-   `notification_preferences`, `category_limit_alerts`).
+   `notification_preferences`, `category_limit_alerts`, `transfers`).
 2. Ve a Supabase → **Project Settings** → **API** → copia la
    **service_role key** (la secreta, no la publishable — nunca la
    compartas ni la pongas en el código, solo en Vercel como variable de

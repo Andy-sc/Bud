@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { addAccount, deleteAccount, updateAccountDetails } from "@/lib/actions/categories";
 import { money } from "@/lib/format";
+import TransferForm from "@/components/TransferForm";
 import type { Account, AccountType } from "@/lib/database.types";
 
 const TYPE_LABEL: Record<AccountType, string> = {
@@ -22,6 +23,7 @@ export default function AccountManager({ accounts }: { accounts: Account[] }) {
         ))}
       </ul>
       <NewAccountForm />
+      <TransferForm accounts={accounts} />
     </div>
   );
 }
