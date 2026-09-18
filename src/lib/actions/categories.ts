@@ -165,7 +165,8 @@ export async function updateAccountDetails(
   name: string,
   accountType: AccountType,
   startingBalance: number,
-  balanceAsOf: string | null
+  balanceAsOf: string | null,
+  dueDay: number | null = null
 ) {
   const { supabase } = await currentUserId();
   const { error } = await supabase
@@ -175,11 +176,25 @@ export async function updateAccountDetails(
       account_type: accountType,
       starting_balance: startingBalance,
       balance_as_of: balanceAsOf,
+      due_day: accountType === "credit" ? dueDay : null,
     })
     .eq("id", id);
   if (error) throw new Error(error.message);
   revalidatePath("/settings");
   revalidatePath("/dashboard");
+  revalidatePath("/calendar");
+}
+
+export async function updateAccountDueDay(id: string, dueDay: number | null) {
+  const { supabase } = await currentUserId();
+  const { error } = await supabase
+    .from("accounts")
+    .update({ due_day: dueDay })
+    .eq("id", id);
+  if (error) throw new Error(error.message);
+  revalidatePath("/settings");
+  revalidatePath("/dashboard");
+  revalidatePath("/calendar");
 }
 
 export async function deleteAccount(id: string) {

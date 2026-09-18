@@ -522,8 +522,11 @@ export interface CashFlowIncomeEvent {
   actual: boolean; // false = projected from a recurring pattern, not yet logged
 }
 
+export type CashFlowBillKind = "subcategory" | "account";
+
 export interface CashFlowBillEvent {
-  subcategoryId: string;
+  kind: CashFlowBillKind;
+  id: string;
   name: string;
   categoryName: string;
   amount: number;
@@ -541,7 +544,8 @@ export interface CashFlowDay {
 }
 
 export interface UnscheduledBill {
-  subcategoryId: string;
+  kind: CashFlowBillKind;
+  id: string;
   name: string;
   categoryName: string;
   amount: number;
@@ -724,19 +728,45 @@ export async function getMonthCashFlow(
       if (sub.type === "debt" && (!sub.debt_id || paidOffDebtIds.has(sub.debt_id))) continue;
       if (sub.due_day && sub.due_day <= numDays) {
         days[sub.due_day - 1].bills.push({
-          subcategoryId: sub.id,
+          kind: "subcategory",
+          id: sub.id,
           name: sub.name,
           categoryName: cat.name,
           amount: Number(sub.planned_amount),
         });
       } else if (!sub.due_day && Number(sub.planned_amount) > 0) {
         unscheduled.push({
-          subcategoryId: sub.id,
+          kind: "subcategory",
+          id: sub.id,
           name: sub.name,
           categoryName: cat.name,
           amount: Number(sub.planned_amount),
         });
       }
+    }
+  }
+
+  // Credit card balances — shown as a "bill" using the account's current
+  // balance (not a stored planned amount, since it moves with usage).
+  const accountSummary = await getAccountSummary(supabase, userId);
+  for (const acc of accountSummary.credit) {
+    if (acc.currentBalance <= 0) continue;
+    if (acc.due_day && acc.due_day <= numDays) {
+      days[acc.due_day - 1].bills.push({
+        kind: "account",
+        id: acc.id,
+        name: acc.name,
+        categoryName: "Credit card",
+        amount: acc.currentBalance,
+      });
+    } else if (!acc.due_day) {
+      unscheduled.push({
+        kind: "account",
+        id: acc.id,
+        name: acc.name,
+        categoryName: "Credit card",
+        amount: acc.currentBalance,
+      });
     }
   }
 

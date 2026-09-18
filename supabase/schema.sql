@@ -17,11 +17,17 @@ create table if not exists public.accounts (
   sort_order int not null default 0,
   created_at timestamptz not null default now(),
   account_type text not null default 'checking'
-    check (account_type in ('checking', 'savings', 'credit', 'investment', 'cash'))
+    check (account_type in ('checking', 'savings', 'credit', 'investment', 'cash')),
+  -- Day of month this account's bill is due (1-31) — used for Credit
+  -- accounts so the card payment shows up on the calendar like a bill,
+  -- using the account's current balance as the amount. Null means "not
+  -- scheduled yet" (shows in the calendar's unscheduled tray instead).
+  due_day int check (due_day between 1 and 31)
 );
 
 alter table public.accounts add column if not exists account_type text not null default 'checking'
   check (account_type in ('checking', 'savings', 'credit', 'investment', 'cash'));
+alter table public.accounts add column if not exists due_day int check (due_day between 1 and 31);
 
 create table if not exists public.categories (
   id uuid primary key default gen_random_uuid(),

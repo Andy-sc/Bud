@@ -2,13 +2,16 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { updateSubcategoryDueDay } from "@/lib/actions/categories";
+import { updateSubcategoryDueDay, updateAccountDueDay } from "@/lib/actions/categories";
+import type { CashFlowBillKind } from "@/lib/budget";
 
 export default function DueDayEditor({
-  subcategoryId,
+  kind,
+  id,
   day,
 }: {
-  subcategoryId: string;
+  kind: CashFlowBillKind;
+  id: string;
   day: number;
 }) {
   const router = useRouter();
@@ -37,7 +40,11 @@ export default function DueDayEditor({
         const newDay = parseInt(value, 10);
         if (newDay >= 1 && newDay <= 31) {
           startTransition(async () => {
-            await updateSubcategoryDueDay(subcategoryId, newDay);
+            if (kind === "account") {
+              await updateAccountDueDay(id, newDay);
+            } else {
+              await updateSubcategoryDueDay(id, newDay);
+            }
             setEditing(false);
             router.refresh();
           });

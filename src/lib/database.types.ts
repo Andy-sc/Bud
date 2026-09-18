@@ -14,6 +14,7 @@ export interface Account {
   sort_order: number;
   created_at: string;
   account_type: AccountType;
+  due_day: number | null;
 }
 
 export interface Category {

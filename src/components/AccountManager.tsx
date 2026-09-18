@@ -32,6 +32,7 @@ function AccountRow({ account }: { account: Account }) {
   const [accountType, setAccountType] = useState<AccountType>(account.account_type);
   const [balance, setBalance] = useState(String(account.starting_balance));
   const [balanceAsOf, setBalanceAsOf] = useState(account.balance_as_of ?? "");
+  const [dueDay, setDueDay] = useState(account.due_day != null ? String(account.due_day) : "");
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
@@ -49,7 +50,8 @@ function AccountRow({ account }: { account: Account }) {
                   name,
                   accountType,
                   parseFloat(balance) || 0,
-                  balanceAsOf || null
+                  balanceAsOf || null,
+                  dueDay ? parseInt(dueDay, 10) : null
                 );
                 setEditing(false);
               } catch (err) {
@@ -89,6 +91,18 @@ function AccountRow({ account }: { account: Account }) {
             title="Balance as of"
             className="control px-2 py-1 border border-[var(--border)] bg-[var(--surface)] text-sm"
           />
+          {accountType === "credit" && (
+            <input
+              type="number"
+              min={1}
+              max={31}
+              value={dueDay}
+              onChange={(e) => setDueDay(e.target.value)}
+              placeholder="Pay day"
+              title="Day of month this card's payment is due — shows it on the Calendar"
+              className="control w-20 px-2 py-1 border border-[var(--border)] bg-[var(--surface)] text-sm"
+            />
+          )}
           <button type="submit" disabled={pending} className="text-xs text-[var(--accent)]">
             Save
           </button>
@@ -114,6 +128,8 @@ function AccountRow({ account }: { account: Account }) {
         {account.name}
         <span className="block text-xs text-[var(--text-muted)]">
           {TYPE_LABEL[account.account_type]} · {money(account.starting_balance)}
+          {account.account_type === "credit" &&
+            (account.due_day ? ` · due day ${account.due_day}` : " · no pay day set")}
         </span>
       </button>
       <button

@@ -53,7 +53,7 @@ export default function CashFlowWeekList({ data }: { data: MonthCashFlow }) {
                 {week.bills.map((b, i) => (
                   <li key={i} className="flex items-center justify-between">
                     <span className="flex items-center gap-1">
-                      <DueDayEditor subcategoryId={b.subcategoryId} day={b.day} />
+                      <DueDayEditor kind={b.kind} id={b.id} day={b.day} />
                       <span>· {b.name}</span>
                     </span>
                     <span className="tabular-nums">{money(b.amount)}</span>

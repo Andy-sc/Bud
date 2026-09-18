@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { updateSubcategoryDueDay } from "@/lib/actions/categories";
+import { updateSubcategoryDueDay, updateAccountDueDay } from "@/lib/actions/categories";
 import { money } from "@/lib/format";
 import type { UnscheduledBill } from "@/lib/budget";
 
@@ -15,12 +15,12 @@ export default function UnscheduledBills({ bills }: { bills: UnscheduledBill[] }
         Unscheduled bills
       </p>
       <p className="text-xs text-[var(--text-muted)]">
-        These Fixed bills don&apos;t have a pay day yet — tap one to put it on
-        the calendar.
+        These don&apos;t have a pay day yet — tap one to put it on the
+        calendar.
       </p>
       <ul className="space-y-1.5 pt-1">
         {bills.map((b) => (
-          <UnscheduledBillRow key={b.subcategoryId} bill={b} />
+          <UnscheduledBillRow key={`${b.kind}-${b.id}`} bill={b} />
         ))}
       </ul>
     </div>
@@ -43,7 +43,11 @@ function UnscheduledBillRow({ bill }: { bill: UnscheduledBill }) {
             const parsed = parseInt(day, 10);
             if (!(parsed >= 1 && parsed <= 31)) return;
             startTransition(async () => {
-              await updateSubcategoryDueDay(bill.subcategoryId, parsed);
+              if (bill.kind === "account") {
+                await updateAccountDueDay(bill.id, parsed);
+              } else {
+                await updateSubcategoryDueDay(bill.id, parsed);
+              }
               setAssigning(false);
               router.refresh();
             });
