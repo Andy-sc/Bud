@@ -68,37 +68,46 @@ export async function GET(request: Request) {
 
   for (const anchor of latestByKey.values()) {
     if (!anchor.recurrence_interval) continue;
-    const anchorDate = new Date(`${anchor.date}T00:00:00`);
-    const nextDate =
+    const step = (d: Date) =>
       anchor.recurrence_interval === "weekly"
-        ? addDays(anchorDate, 7)
+        ? addDays(d, 7)
         : anchor.recurrence_interval === "biweekly"
-          ? addDays(anchorDate, 14)
-          : addOneMonth(anchorDate);
+          ? addDays(d, 14)
+          : addOneMonth(d);
 
-    if (toISODate(nextDate) !== todayISO) continue;
+    // Catch up on every occurrence due since the anchor, not just "is one
+    // due today" — a single missed cron run would otherwise leave the
+    // pattern's anchor stuck in the past, permanently stopping it from
+    // ever firing again. Capped defensively; a daily cron should never
+    // actually need more than a couple of iterations here.
+    let cursor = new Date(`${anchor.date}T00:00:00`);
+    for (let i = 0; i < 60; i++) {
+      cursor = step(cursor);
+      const cursorISO = toISODate(cursor);
+      if (cursorISO > todayISO) break;
 
-    const { data: existingRow } = await supabase
-      .from("transfers")
-      .select("id")
-      .eq("user_id", anchor.user_id)
-      .eq("from_account_id", anchor.from_account_id)
-      .eq("to_account_id", anchor.to_account_id)
-      .eq("date", todayISO)
-      .maybeSingle();
-    if (existingRow) continue;
+      const { data: existingRow } = await supabase
+        .from("transfers")
+        .select("id")
+        .eq("user_id", anchor.user_id)
+        .eq("from_account_id", anchor.from_account_id)
+        .eq("to_account_id", anchor.to_account_id)
+        .eq("date", cursorISO)
+        .maybeSingle();
+      if (existingRow) continue;
 
-    const { error: insertError } = await supabase.from("transfers").insert({
-      user_id: anchor.user_id,
-      from_account_id: anchor.from_account_id,
-      to_account_id: anchor.to_account_id,
-      amount: anchor.amount,
-      date: todayISO,
-      note: anchor.note,
-      is_recurring: true,
-      recurrence_interval: anchor.recurrence_interval,
-    });
-    if (!insertError) created++;
+      const { error: insertError } = await supabase.from("transfers").insert({
+        user_id: anchor.user_id,
+        from_account_id: anchor.from_account_id,
+        to_account_id: anchor.to_account_id,
+        amount: anchor.amount,
+        date: cursorISO,
+        note: anchor.note,
+        is_recurring: true,
+        recurrence_interval: anchor.recurrence_interval,
+      });
+      if (!insertError) created++;
+    }
   }
 
   return NextResponse.json({ created });

@@ -101,7 +101,7 @@ export async function GET(request: Request) {
         ...DEFAULT_NOTIFICATION_PREFS,
       };
 
-    // Bills due tomorrow
+    // Bills due tomorrow — Fixed subcategories and credit card payments
     if (prefs.bill_reminders) {
       const { data: bills } = await supabase
         .from("subcategories")
@@ -116,6 +116,18 @@ export async function GET(request: Request) {
           body: `${bill.name} — $${Number(bill.planned_amount).toFixed(2)}`,
           url: "/calendar",
         });
+      }
+
+      const creditSummary = await getAccountSummary(supabase, userId);
+      for (const acc of creditSummary.credit) {
+        if (acc.due_day === dueDay && acc.currentBalance > 0) {
+          notifications.push({
+            userId,
+            title: "Card payment due tomorrow",
+            body: `${acc.name} — $${acc.currentBalance.toFixed(2)}`,
+            url: "/calendar",
+          });
+        }
       }
     }
 

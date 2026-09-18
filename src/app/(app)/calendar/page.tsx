@@ -23,13 +23,13 @@ export default async function CalendarPage({
   const userId = user!.id;
 
   const accountSummary = await getAccountSummary(supabase, userId);
-  const cashFlow = await getMonthCashFlow(
-    supabase,
-    userId,
-    year,
-    month,
-    accountSummary.netCash
-  );
+  // Liquid cash only (not netCash) — netCash already subtracts what's owed
+  // on credit cards, and the calendar separately shows paying off a card
+  // as a future bill event. Starting from netCash would subtract that
+  // same debt twice: once up front, again the day the card bill lands.
+  const spendableCash =
+    accountSummary.totalChecking + accountSummary.totalSavings + accountSummary.totalCash;
+  const cashFlow = await getMonthCashFlow(supabase, userId, year, month, spendableCash);
 
   return (
     <div className="space-y-6">
