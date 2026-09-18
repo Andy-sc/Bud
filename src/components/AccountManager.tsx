@@ -82,7 +82,13 @@ function AccountRow({ account }: { account: Account }) {
             type="number"
             step="0.01"
             value={balance}
-            onChange={(e) => setBalance(e.target.value)}
+            onChange={(e) => {
+              setBalance(e.target.value);
+              // Changing the balance means "this is what I have right now" —
+              // auto-bump the as-of date to today so past transactions don't
+              // also get added on top of the new number.
+              setBalanceAsOf(new Date().toISOString().slice(0, 10));
+            }}
             title={accountType === "credit" ? "Amount currently owed" : "Current balance"}
             className="control w-24 px-2 py-1 border border-[var(--border)] bg-[var(--surface)] text-sm"
           />
@@ -90,7 +96,7 @@ function AccountRow({ account }: { account: Account }) {
             type="date"
             value={balanceAsOf}
             onChange={(e) => setBalanceAsOf(e.target.value)}
-            title="Balance as of"
+            title="Balance as of — auto-updates to today when you change the balance above"
             className="control px-2 py-1 border border-[var(--border)] bg-[var(--surface)] text-sm"
           />
           {accountType === "credit" && (
@@ -116,6 +122,10 @@ function AccountRow({ account }: { account: Account }) {
             Cancel
           </button>
         </form>
+        <p className="text-xs text-[var(--text-muted)] mt-1">
+          Changing the balance updates it to what you have right now — past
+          transactions won&apos;t be added on top.
+        </p>
         {error && <p className="text-xs text-[var(--critical)] mt-1">{error}</p>}
       </li>
     );
