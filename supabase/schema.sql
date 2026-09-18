@@ -367,13 +367,13 @@ begin
   end if;
 
   -- Accounts
-  insert into public.accounts (user_id, name, sort_order) values
-    (uid, 'Chase Checking', 1) returning id into acc_checking;
-  insert into public.accounts (user_id, name, sort_order) values
-    (uid, 'Chase Savings', 2),
-    (uid, 'Chase Credit', 3),
-    (uid, 'Vanguard', 4),
-    (uid, 'Venmo', 5);
+  insert into public.accounts (user_id, name, sort_order, account_type) values
+    (uid, 'Chase Checking', 1, 'checking') returning id into acc_checking;
+  insert into public.accounts (user_id, name, sort_order, account_type) values
+    (uid, 'Chase Savings', 2, 'savings'),
+    (uid, 'Chase Credit', 3, 'credit'),
+    (uid, 'Vanguard', 4, 'investment'),
+    (uid, 'Venmo', 5, 'cash');
 
   -- Categories
   insert into public.categories (user_id, name, sort_order) values (uid, 'Home', 1) returning id into cat_home;
@@ -448,6 +448,21 @@ end;
 $$;
 
 grant execute on function public.seed_starter_budget() to authenticated;
+
+-- Backfill: the starter template used to insert Chase Savings/Chase
+-- Credit/Vanguard/Venmo without an account_type, so they silently
+-- defaulted to 'checking' — throwing off Balance across accounts (credit
+-- never got subtracted) and grouping savings under Checking. Only
+-- touches accounts still sitting on that default with these exact
+-- starter-template names, so it won't clobber anyone's own choice.
+update public.accounts set account_type = 'savings'
+  where name = 'Chase Savings' and account_type = 'checking';
+update public.accounts set account_type = 'credit'
+  where name = 'Chase Credit' and account_type = 'checking';
+update public.accounts set account_type = 'investment'
+  where name = 'Vanguard' and account_type = 'checking';
+update public.accounts set account_type = 'cash'
+  where name = 'Venmo' and account_type = 'checking';
 
 -- ============================================================================
 -- MIGRATION — backfills profile rows for the two accounts created before the
