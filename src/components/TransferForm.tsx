@@ -1,10 +1,12 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { addTransfer } from "@/lib/actions/transfers";
 import type { Account } from "@/lib/database.types";
 
 export default function TransferForm({ accounts }: { accounts: Account[] }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [isRecurring, setIsRecurring] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,6 +40,7 @@ export default function TransferForm({ accounts }: { accounts: Account[] }) {
             setFormKey((k) => k + 1);
             setIsRecurring(false);
             setOpen(false);
+            router.refresh();
           } catch (err) {
             setError(err instanceof Error ? err.message : "Error");
           }

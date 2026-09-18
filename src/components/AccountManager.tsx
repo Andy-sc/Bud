@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { addAccount, deleteAccount, updateAccountDetails } from "@/lib/actions/categories";
 import { money } from "@/lib/format";
 import TransferForm from "@/components/TransferForm";
@@ -29,6 +30,7 @@ export default function AccountManager({ accounts }: { accounts: Account[] }) {
 }
 
 function AccountRow({ account }: { account: Account }) {
+  const router = useRouter();
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(account.name);
   const [accountType, setAccountType] = useState<AccountType>(account.account_type);
@@ -56,6 +58,7 @@ function AccountRow({ account }: { account: Account }) {
                   dueDay ? parseInt(dueDay, 10) : null
                 );
                 setEditing(false);
+                router.refresh();
               } catch (err) {
                 setError(err instanceof Error ? err.message : "Error");
               }
@@ -150,6 +153,7 @@ function AccountRow({ account }: { account: Account }) {
           startTransition(async () => {
             try {
               await deleteAccount(account.id);
+              router.refresh();
             } catch (err) {
               setError(err instanceof Error ? err.message : "Error");
             }
@@ -164,6 +168,7 @@ function AccountRow({ account }: { account: Account }) {
 }
 
 function NewAccountForm() {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [name, setName] = useState("");
   const [accountType, setAccountType] = useState<AccountType>("checking");
@@ -194,6 +199,7 @@ function NewAccountForm() {
             setName("");
             setBalance("0");
             setOpen(false);
+            router.refresh();
           } catch (err) {
             setError(err instanceof Error ? err.message : "Error");
           }
